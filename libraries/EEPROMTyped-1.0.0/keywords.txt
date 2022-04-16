@@ -1,0 +1,15 @@
+# Syntax Coloring Map For ExampleLibrary
+
+# Datatypes (KEYWORD1)
+
+EEPROMTyped     KEYWORD1
+
+# Methods and Functions (KEYWORD2)
+
+sizeOf          KEYWORD2
+write           KEYWORD2
+read            KEYWORD2
+
+# Instances (KEYWORD2)
+
+# Constants (LITERAL1)
