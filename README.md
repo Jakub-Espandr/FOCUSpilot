@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://ibb.co/YBk6h9gZ">
-    <img src="https://i.ibb.co/LdtM1wK5/fcc-FS-PRO.jpg" alt="fcc-FS-PRO" width="250"/>
+    <img src="https://i.ibb.co/LdtM1wK5/fcc-FS-PRO.jpg" alt="fcc-FS-PRO" width="300"/>
   </a>
 </p>
 
@@ -15,12 +15,19 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 ## ✨ Features
 
 - **Automated Focus Stacking**: Automatically moves through focus positions and triggers camera capture
+- **Professional Preset System**: Dedicated modes for Macro Rail and Microscope applications
+- **Mirror Lock Support**: Vibration-free photography with configurable mirror lock timing
+- **Auto Return Function**: Automatic return to start position after stacking completion
 - **Manual Control**: Manual forward/backward movement with position memory
-- **Configurable Parameters**: Adjustable depth of field (DoF), step size, and timing
+- **Dynamic Motor Control**: Automatic speed adjustment based on depth of field settings
+- **Configurable Parameters**: Adjustable depth of field (DoF), step size, timing, and trigger settings
 - **LCD Interface**: 16x2 LCD display with rotary encoder navigation
 - **Keypad Control**: 4-button keypad for quick manual operations
-- **EEPROM Storage**: Settings are saved to non-volatile memory
+- **EEPROM Storage**: Settings are saved to non-volatile memory with separate preset storage
 - **Bidirectional Operation**: Support for both forward and backward focus stacking sequences
+- **Emergency Stop**: Quick stop functionality using encoder button
+- **Progress Monitoring**: Real-time display with remaining time estimation
+- **HiRes Mode**: High-resolution stepping (1/32 microstepping) for precise positioning
 
 ---
 
@@ -28,7 +35,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 
 ### Hardware Components
 - Arduino board (compatible with Arduino IDE)
-- 16x2 LCD display with I2C interface (address 0x3F)
+- 16x2 LCD display with I2C interface (address 0x27)
 - Rotary encoder (CLK, DT, SW pins)
 - 4-button keypad
 - Stepper motor driver
@@ -65,7 +72,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 
 1. **Install Libraries**: Install the required Arduino libraries through the Library Manager
 2. **Connect Hardware**: Wire the components according to the pin diagram above
-3. **Upload Code**: Upload the `fccFS-PRO_1.0.0.ino` file to your Arduino board
+3. **Upload Code**: Upload the `fccFS-PRO_1.1.3.ino` file to your Arduino board
 4. **Power On**: Connect power and initialize the system
 
 ---
@@ -86,41 +93,71 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 Press the encoder button to access the main menu:
 
 #### Main Menu Options:
-- **CAPTURE**: Trigger camera shutter manually
+- **testSHOT**: Trigger camera shutter manually
 - **RUN**: Automated focus stacking sequences
-  - RUN Front: Execute forward focus stacking
-  - RUN Back: Execute backward focus stacking
+  - RUN Forward: Execute forward focus stacking with settings
+  - RUN Backward: Execute backward focus stacking with settings
   - Delete TRACE: Clear saved positions
-- **GO**: Manual movement commands
-  - GO Front: Move to end position
-  - GO Back: Move to start position
+- **GO position**: Manual movement commands
+  - BACK pos.: Move to start position
+  - FRONT pos.: Move to end position
   - Delete TRACE: Clear saved positions
-- **SETTINGS**: Configure system parameters
-  - Step: Set microstepping (1/1 to 1/32)
-  - DoF: Set depth of field (1-16, affects step size)
-  - Time: Set delay between captures (1-16 seconds)
-- **SAVE**: Save current settings to EEPROM
-- **RESTORE**: Restore default settings
+- **PREFERENCES**: Configure basic parameters
+  - HiRes.: Set high-resolution stepping (0=OFF/1=ON)
+  - um/step: Set depth of field per step
+  - time shutter: Set shutter timing
+  - time vibr.: Set vibration delay
+  - time (mirror): Set mirror lock timing
+  - SAVE: Save current settings
+- **SETTINGS**: Advanced configuration
+  - mirrorLock: Enable/disable mirror lock function
+  - AutoReturn: Enable/disable auto return after stacking
+  - time (trigg): Set trigger timing
+  - motor speed: Set motor speed
+  - added length: Set length compensation
+  - BOOT screen: Enable/disable boot screen
+  - PRESET a.LOAD: Choose autoload preset
+  - SAVE: Save current settings
+- **Rail/Microscope**: Mode selection
+  - Rail: Switch to macro rail mode
+  - Microscope: Switch to microscope mode
+  - PRESET a.LOAD: Choose autoload preset
+- **SAVE/RESTORE**: Preset management
+  - SAVE PRESET: Save current configuration
+  - LOAD DEFAULTS: Restore factory settings
+    - Rail: Load rail default settings
+    - Microscope: Load microscope default settings
+- **VERSION**: System information
+  - model: fccFS2 PRO
+  - by FlyCamCzech
+  - version 1.1.3
+  - 26. April. 2023
 
 ### Configuration Parameters
 
 #### Step Size (Microstepping)
-- 1 = 1/1 step (coarsest)
-- 2 = 1/2 step
-- 3 = 1/4 step
-- 4 = 1/8 step
-- 5 = 1/16 step
-- 6 = 1/32 step (finest)
+- 0 = Normal mode (1/16 step)
+- 1 = HiRes mode (1/32 step) for high precision
 
 #### Depth of Field (DoF)
-- Range: 1-16
-- 1 = 0.1mm step size
-- 16 = 1mm step size
-- Affects the distance between focus positions
+- **Rail Mode**: 20-1500μm/step (normal), 10-652μm/step (HiRes)
+- **Microscope Mode**: 10-1000nm/step (normal), 5-500nm/step (HiRes)
 
-#### Timing
-- Range: 1-16 seconds
-- Delay between camera captures during automated sequences
+#### Timing Settings
+- **Shutter timing**: 1-20 seconds delay between captures
+- **Vibration delay**: 1-20 seconds delay between movement and capture
+- **Trigger timing**: 250-2000μs trigger pulse length
+- **Mirror timing**: 250-5000μs mirror lock delay
+
+#### Motor Settings
+- **Motor speed**: 100-500ms per step
+- **Added length**: 10-100μm compensation for backlash
+
+#### System Settings
+- **Mirror Lock**: Enable/disable for vibration-free photography
+- **Auto Return**: Enable/disable automatic return to start position
+- **Boot screen**: Enable/disable startup screen
+- **Preset autoload**: Choose default mode (Microscope/Rail)
 
 ---
 
@@ -128,8 +165,10 @@ Press the encoder button to access the main menu:
 
 ```
 FOCUSpilot/
+├── fccFS-PRO_1.1.3/
+│   └── fccFS-PRO_1.1.3.ino    # Main Arduino sketch (current version)
 ├── fccFS-PRO_1.0.0/
-│   └── fccFS-PRO_1.0.0.ino    # Main Arduino sketch
+│   └── fccFS-PRO_1.0.0.ino    # Legacy version
 ├── fccFS-PRO_1.0.0.cpp        # Implementation file
 ├── fccFS-PRO_1.0.0.h          # Header file
 ├── libraries/                  # Required Arduino libraries
@@ -138,28 +177,50 @@ FOCUSpilot/
 │   ├── Keypad/
 │   ├── LiquidCrystal_I2C_Menu-master/
 │   └── Wire/
-└── README.md                   # This file
+├── README.md                   # This file
+└── CHANGELOG.md               # Version history
 ```
 
 ---
 
 ## 🔧 Focus Stacking Workflow
 
-1. **Setup**: Configure step size, DoF, and timing in SETTINGS menu
-2. **Positioning**: Use manual controls to set start and end positions
+1. **Mode Selection**: Choose between Rail or Microscope mode based on your application
+2. **Setup**: Configure step size, DoF, timing, and trigger settings in PREFERENCES/SETTINGS
+3. **Positioning**: Use manual controls to set start and end positions
    - Move to desired start position and press button 2
    - Move to desired end position and press button 4
-3. **Execution**: Choose RUN Front or RUN Back from the menu
-4. **Monitoring**: The LCD displays progress (e.g., "5 from 100")
-5. **Completion**: System returns to idle state
+4. **Execution**: Choose RUN Forward or RUN Backward from the menu
+5. **Monitoring**: The LCD displays progress with remaining time estimation
+6. **Completion**: System returns to start position if Auto Return is enabled
 
 ---
 
 ## ⚙️ Default Settings
 
-- Step Size: 1/4 (3)
-- DoF: 10
-- Timing: 2 seconds
+### Rail Mode (Macro Photography)
+- Step Size: Normal (1/16)
+- DoF: 250μm/step
+- Shutter timing: 2s
+- Vibration delay: 2s
+- Trigger timing: 500μs
+- Mirror timing: 750μs
+- Mirror Lock: OFF
+- Auto Return: ON
+- Motor speed: 500ms
+- Added length: 30μm
+
+### Microscope Mode
+- Step Size: Normal (1/16)
+- DoF: 20nm/step
+- Shutter timing: 2s
+- Vibration delay: 2s
+- Trigger timing: 500μs
+- Mirror timing: 750μs
+- Mirror Lock: OFF
+- Auto Return: ON
+- Motor speed: 500ms
+- Added length: 30μm
 
 ---
 
