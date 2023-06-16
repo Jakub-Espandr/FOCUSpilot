@@ -1,5 +1,5 @@
-#ifndef FCCFS-PRO_1.1.3_H
-#define FCCFS-PRO_1.1.3_H
+#ifndef FCCFS-PRO_1.1.5_H
+#define FCCFS-PRO_1.1.5_H
 
 #include <Arduino.h>
 
@@ -19,6 +19,7 @@ void goB();
 void goF();
 void goRunF();
 void goRunB();
+void goRunB();
 int getItemIndexByKey(uint8_t key);
 void LCDRepaint();
 void delTrace();
@@ -29,7 +30,8 @@ void SetModeFS();
 void SetModeM();
 void SetDOF();
 void SetBoot();
-void SetPreset();
+void SetPresetM();
+void SetPresetR();
 void SetShootMode();
 void SetAdded();
 void SetAutoReturn();

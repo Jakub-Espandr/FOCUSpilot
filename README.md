@@ -16,10 +16,11 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 
 - **Automated Focus Stacking**: Automatically moves through focus positions and triggers camera capture
 - **Professional Preset System**: Dedicated modes for Macro Rail and Microscope applications
+- **Enhanced Algorithms**: Mode-specific focus stacking algorithms optimized for different applications
 - **Mirror Lock Support**: Vibration-free photography with configurable mirror lock timing
 - **Auto Return Function**: Automatic return to start position after stacking completion
 - **Manual Control**: Manual forward/backward movement with position memory
-- **Dynamic Motor Control**: Automatic speed adjustment based on depth of field settings
+- **Dynamic Motor Control**: Automatic speed adjustment based on depth of field and stepping mode
 - **Configurable Parameters**: Adjustable depth of field (DoF), step size, timing, and trigger settings
 - **LCD Interface**: 16x2 LCD display with rotary encoder navigation
 - **Keypad Control**: 4-button keypad for quick manual operations
@@ -28,6 +29,8 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 - **Emergency Stop**: Quick stop functionality using encoder button
 - **Progress Monitoring**: Real-time display with remaining time estimation
 - **HiRes Mode**: High-resolution stepping (1/32 microstepping) for precise positioning
+- **Direct Preset Selection**: Quick access to Microscope and Rail presets
+- **Smart Unit Display**: Automatic unit display (nm/μm) based on selected mode
 
 ---
 
@@ -72,7 +75,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 
 1. **Install Libraries**: Install the required Arduino libraries through the Library Manager
 2. **Connect Hardware**: Wire the components according to the pin diagram above
-3. **Upload Code**: Upload the `fccFS-PRO_1.1.3.ino` file to your Arduino board
+3. **Upload Code**: Upload the `fccFS-PRO_1.1.5.ino` file to your Arduino board
 4. **Power On**: Connect power and initialize the system
 
 ---
@@ -107,16 +110,18 @@ Press the encoder button to access the main menu:
   - um/step: Set depth of field per step
   - time shutter: Set shutter timing
   - time vibr.: Set vibration delay
+  - mirrorLock: Enable/disable mirror lock function
   - time (mirror): Set mirror lock timing
   - SAVE: Save current settings
 - **SETTINGS**: Advanced configuration
-  - mirrorLock: Enable/disable mirror lock function
   - AutoReturn: Enable/disable auto return after stacking
   - time (trigg): Set trigger timing
   - motor speed: Set motor speed
   - added length: Set length compensation
   - BOOT screen: Enable/disable boot screen
   - PRESET a.LOAD: Choose autoload preset
+    - Microscope: Load microscope preset
+    - Rail: Load rail preset
   - SAVE: Save current settings
 - **Rail/Microscope**: Mode selection
   - Rail: Switch to macro rail mode
@@ -130,8 +135,8 @@ Press the encoder button to access the main menu:
 - **VERSION**: System information
   - model: fccFS2 PRO
   - by FlyCamCzech
-  - version 1.1.3
-  - 26. April. 2023
+  - version 1.1.5
+  - 16. Jun. 2023
 
 ### Configuration Parameters
 
@@ -141,7 +146,7 @@ Press the encoder button to access the main menu:
 
 #### Depth of Field (DoF)
 - **Rail Mode**: 20-1500μm/step (normal), 10-652μm/step (HiRes)
-- **Microscope Mode**: 10-1000nm/step (normal), 5-500nm/step (HiRes)
+- **Microscope Mode**: 10-1800nm/step (normal), 5-1000nm/step (HiRes)
 
 #### Timing Settings
 - **Shutter timing**: 1-20 seconds delay between captures
@@ -150,7 +155,7 @@ Press the encoder button to access the main menu:
 - **Mirror timing**: 250-5000μs mirror lock delay
 
 #### Motor Settings
-- **Motor speed**: 100-500ms per step
+- **Motor speed**: 100-1000ms per step (increased range)
 - **Added length**: 10-100μm compensation for backlash
 
 #### System Settings
@@ -165,12 +170,10 @@ Press the encoder button to access the main menu:
 
 ```
 FOCUSpilot/
-├── fccFS-PRO_1.1.3/
-│   └── fccFS-PRO_1.1.3.ino    # Main Arduino sketch (current version)
-├── fccFS-PRO_1.0.0/
-│   └── fccFS-PRO_1.0.0.ino    # Legacy version
-├── fccFS-PRO_1.0.0.cpp        # Implementation file
-├── fccFS-PRO_1.0.0.h          # Header file
+├── fccFS-PRO_1.1.5/
+│   └── fccFS-PRO_1.1.5.ino    # Main Arduino sketch (current version)
+├── fccFS-PRO_1.1.5.cpp        # Implementation file
+├── fccFS-PRO_1.1.5.h          # Header file
 ├── libraries/                  # Required Arduino libraries
 │   ├── EEPROM/
 │   ├── EEPROMTyped-1.0.0/
@@ -211,16 +214,16 @@ FOCUSpilot/
 - Added length: 30μm
 
 ### Microscope Mode
-- Step Size: Normal (1/16)
+- Step Size: HiRes (1/32) - enabled by default
 - DoF: 20nm/step
-- Shutter timing: 2s
+- Shutter timing: 3s (increased from 2s)
 - Vibration delay: 2s
 - Trigger timing: 500μs
 - Mirror timing: 750μs
 - Mirror Lock: OFF
 - Auto Return: ON
 - Motor speed: 500ms
-- Added length: 30μm
+- Added length: 50μm (increased from 30μm)
 
 ---
 

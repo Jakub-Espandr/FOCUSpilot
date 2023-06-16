@@ -1,8 +1,9 @@
-#include "fccFS-PRO_1.1.3.h"
+#include "fccFS-PRO_1.1.5.h"
 #include <Arduino.h>
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C_Menu.h>
+
 LiquidCrystal_I2C_Menu lcd(0x27, 16, 2);  //0x27order / 3f me
 #include <EEPROM.h>
 #include <Keypad.h>
@@ -37,7 +38,7 @@ int readIntFromEEPROM(int address) {
 }
 //------------------------------------------------------
 // SHOW BOOTSCREEN
-char* messagePadded = "     v1.1.3     www.FlyCamCzech.cz/FocusStacking                ";  //pointer
+char* messagePadded = "     v1.1.5     www.FlyCamCzech.cz/FocusStacking                ";  //pointer
 void showLetters(int printStart, int startLetter) {
   lcd.setCursor(printStart, 1);
   for (int letter = startLetter; letter <= startLetter + 15; letter++)  // Print only 16 chars in Line #2 starting 'startLetter'
@@ -64,7 +65,6 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 int DOF;
 unsigned int localDOF = 0;
 int localAdded;
-unsigned int stepsToDo = 0;
 int percentage;
 int stepsI;
 int ShootMode;
@@ -80,8 +80,8 @@ int delayTimingMove;
 int delayTimingTrigger;
 int trigger;
 int mirror;
-bool bootVal;
-bool presetVal;
+int bootVal;
+int presetVal;
 unsigned long actualState = 0;
 unsigned long motorState = 0;
 unsigned long focusMotorState = 0;
@@ -91,6 +91,8 @@ int emergency = 0;
 bool setStep1;
 bool setStep2;
 bool setStep3;
+
+int firstRun = 0;
 //------------------------------------------------------
 // MENU ENUM
 enum { menuBack,
@@ -121,6 +123,8 @@ enum { menuBack,
        menuModeFS,
        menuBoot,
        menuPreset,
+       menuPresetM,
+       menuPresetR,
        menuInfo,
        menuInfoDisp,
        menuRun,
@@ -160,6 +164,8 @@ void capture();
 void SetBoot();
 void SetModeFS();
 void SetModeM();
+void SetPresetR();
+void SetPresetM();
 //------------------------------------------------------
 //------------------------------------------------------
 //------------------------------------------------------
@@ -306,15 +312,37 @@ void goRunF() {
   focusCounter = 0;
   emergency = 0;
 
-  switch (stepsI) {
+  switch (presetVal) {
     case 0:
-      localDOF = DOF / 3;
-      stepsToDo = (int)localDOF;
+      switch (stepsI) {
+        case 0:
+          localDOF = (DOF / 2);
+          localDOF = localDOF;
+          focusMotorState = (motorState / localDOF);
+          break;
+
+        case 1:
+          localDOF = DOF;
+          localDOF = localDOF;
+          focusMotorState = (motorState / localDOF);
+          break;
+      }
       break;
 
     case 1:
-      localDOF = DOF / 2;
-      stepsToDo = (int)localDOF;
+      switch (stepsI) {
+        case 0:
+          localDOF = (DOF / 2);
+          localDOF = localDOF;
+          focusMotorState = (motorState / localDOF);
+          break;
+
+        case 1:
+          localDOF = DOF;
+          localDOF = localDOF;
+          focusMotorState = (motorState / localDOF);
+          break;
+      }
       break;
   }
 
@@ -324,7 +352,6 @@ void goRunF() {
 
   delayTiming = timing * 1000;
   delayTimingMove = timingMove * 1000;
-  focusMotorState = (motorState / localDOF);
   delay(2400);  // wait before changing dir
 
   for (int i = 0; i < focusMotorState; i++) {
@@ -356,7 +383,15 @@ void goRunF() {
     lcd.print(String("increment "));
 
     lcd.setCursor(10, 1);
-    lcd.print(String(DOF) + String("um"));
+    switch (presetVal) {
+      case 0:
+        lcd.print(String(DOF) + String("nm"));
+        break;
+
+      case 1:
+        lcd.print(String(DOF) + String("um"));
+        break;
+    }
 
     delay(delayTimingMove);
     char customKey = keypad.getKey();
@@ -378,8 +413,120 @@ void goRunF() {
 }
 
 //------------------------------------------------------
+
 // RUN Back
 void goRunB() {
+  lcd.clear();
+  if (DOF >= 50) {
+    motorDelay = 800;
+  }
+  else {
+    motorDelay = 300;
+  }
+  loopCounter = 0;
+  focusCounter = 0;
+  emergency = 0;
+
+
+if (presetVal == 0) {
+  switch (stepsI) {
+        case 0:
+          localDOF = (DOF / 2)*0.75;
+          focusMotorState = motorState / localDOF;
+          break;
+
+        case 1:
+          localDOF = DOF*0.75;
+          focusMotorState = motorState / localDOF;
+          break;
+      }
+}
+
+if (presetVal == 1) {
+  switch (stepsI) {
+        case 0:
+          localDOF = (DOF / 2)*0.8;
+          focusMotorState = motorState / localDOF;
+          break;
+
+        case 1:
+          localDOF = (DOF*0.8);
+          focusMotorState = motorState / localDOF;
+          break;
+      }
+}
+
+  delayTiming = timing * 1000;
+  delayTimingMove = timingMove * 1000;
+  delay(2400);  // wait before changing dir
+
+  for (int i = 0; i < focusMotorState; i++) {
+    loopCounter++;
+
+    for (int i = 0; i < localDOF; i++) {
+      char customKey = keypad.getKey();
+
+      if (digitalRead(3) == LOW) {
+        emergency = 1;
+        break;
+        LCDRepaint();
+        delay(30);
+      }
+      goBack();
+      focusCounter++;
+    }
+    lcd.clear();
+    int remainingTime = (((trigger * 2) + mirror + 5000 + delayTiming + delayTimingMove) / 2000);
+    int laps = (focusMotorState - loopCounter);
+    lcd.setCursor(0, 0);
+    lcd.print(String(loopCounter) + String("/") + String(focusMotorState));
+
+    lcd.setCursor(10, 0);
+    lcd.print(String(laps * remainingTime) + String("s"));
+
+    lcd.setCursor(0, 1);
+    lcd.print(String("increment "));
+
+    lcd.setCursor(10, 1);
+    switch (presetVal) {
+      case 0:
+        lcd.print(String(DOF) + String("nm"));
+        break;
+
+      case 1:
+        lcd.print(String(DOF) + String("um"));
+        break;
+    }
+
+    delay(delayTimingMove);
+    char customKey = keypad.getKey();
+    capture();
+    delay(delayTiming);
+
+    if (digitalRead(3) == LOW) {
+      emergency = 1;
+      break;
+      LCDRepaint();
+      delay(30);
+      motorStop();
+    }
+  }
+
+  if ((AutoReturn == 1) and (emergency == 0)) {
+    for (int i = 0; i < motorState; i++) {
+      goFront();
+    }
+    motorStop();
+  }
+
+  emergency = 0;
+  focusMotorState = 0;
+  focusCounter = 0;
+  motorStop();
+}
+
+/*
+  void goRunB() {
   lcd.clear();
 
   if (DOF >= 20 and DOF <= 60) {
@@ -394,15 +541,33 @@ void goRunB() {
   focusCounter = 0;
   emergency = 0;
 
-  switch (stepsI) {
+  switch (presetVal) {
     case 0:
-      localDOF = DOF / 3;
-      stepsToDo = (int)localDOF;
+      switch (stepsI) {
+        case 0:
+          localDOF = DOF;
+          focusMotorState = motorState / localDOF;
+          break;
+
+        case 1:
+          localDOF = DOF;
+          focusMotorState = motorState / localDOF;
+          break;
+      }
       break;
 
     case 1:
-      localDOF = DOF / 2;
-      stepsToDo = (int)localDOF;
+      switch (stepsI) {
+        case 0:
+           localDOF = DOF;
+          focusMotorState = motorState / localDOF;
+          break;
+
+        case 1:
+          localDOF = DOF;
+          focusMotorState = motorState / localDOF;
+          break;
+      }
       break;
   }
 
@@ -466,8 +631,8 @@ void goRunB() {
   focusMotorState = 0;
   focusCounter = 0;
   motorStop();
-}
-
+  }
+*/
 //------------------------------------------------------
 //......................................................
 // MENU
@@ -503,25 +668,29 @@ sMenuItem menu[] = {
   { menuPreferences, menuDOF, " um/step", SetDOF },
   { menuPreferences, menuTime, " time shutter", SetDelay },
   { menuPreferences, menuTimeMove, " time vibr.", SetDelayMove },
+  { menuPreferences, menuShootMode, " mirrorLock", SetShootMode },
   { menuPreferences, menuMirror, " time (mirror)", SetMirror },
   { menuPreferences, menuSave, " SAVE", NULL },
   { menuPreferences, menuBack, " EXIT", NULL },
 
   { menuRoot, menuSettings, "SETTINGS", NULL },
-  { menuSettings, menuShootMode, " mirrorLock", SetShootMode },
   { menuSettings, menuAutoReturn, " AutoReturn", SetAutoReturn },
   { menuSettings, menuTimeTrigger, " time (trigg)", SetDelayTrigger },
   { menuSettings, menuSpeed, " motor speed", SetSpeed },
   { menuSettings, menuAdded, " added length", SetAdded },
   { menuSettings, menuBoot, " BOOT screen", SetBoot },
-  { menuSettings, menuPreset, " PRESET a.LOAD", SetPreset },
+  { menuSettings, menuPreset, " PRESET a.LOAD", NULL },
+  { menuPreset, menuPresetM, " Microscope", SetPresetM },
+  { menuPreset, menuPresetR, " Rail", SetPresetR },
+  { menuPreset, menuBack, " goBACK", NULL },
+
   { menuSettings, menuSave, " SAVE", NULL },
   { menuSettings, menuBack, " EXIT", NULL },
 
   { menuRoot, menuMode, "Rail/Microscope", NULL },
   { menuMode, menuModeFS, " Rail", SetModeFS },
   { menuMode, menuModeM, " Microscope", SetModeM },
-  { menuMode, menuPreset, " PRESET a.LOAD", SetPreset },
+  { menuMode, menuPreset, " PRESET a.LOAD", NULL },
   { menuMode, menuBack, " EXIT", NULL },
 
   { menuRoot, menuSave_Restore, "SAVE/RESTORE", NULL },
@@ -537,10 +706,10 @@ sMenuItem menu[] = {
   { menuSave_Restore, menuBack, " EXIT", NULL },
 
   { menuRoot, menuInfo, "VERSION", NULL },
-  { menuInfo, menuInfoDisp, "model: fccFS2 ", NULL },
+  { menuInfo, menuInfoDisp, "model: fccFS2 PRO ", NULL },
   { menuInfo, menuInfoDisp, "by FlyCamCzech", NULL },
-  { menuInfo, menuInfoDisp, "version 1.1.3", NULL },
-  { menuInfo, menuInfoDisp, "26. April. 2023", NULL },
+  { menuInfo, menuInfoDisp, "version 1.1.5", NULL },
+  { menuInfo, menuInfoDisp, "16. Jun. 2023", NULL },
   { menuInfo, menuBack, " EXIT", NULL },
 
   { menuRoot, menuBack, "EXIT", NULL },
@@ -559,57 +728,57 @@ int getItemIndexByKey(uint8_t key) {
 //------------------------------------------------------
 //......................................................
 void LCDRepaint() {
-  lcd.clear();
-  lcd.setCursor(0, 0);
+    lcd.clear();
+    lcd.setCursor(0, 0);
 
-  switch (presetVal) {
-    case 0:
-      lcd.print(String("nm ") + String(DOF));
-      break;
+    switch (presetVal) {
+      case 0:
+        lcd.print(String("nm ") + String(DOF));
+        break;
 
-    case 1:
-      lcd.print(String((char)228 + String("m ")) + String(DOF));
-      break;
+      case 1:
+        lcd.print(String((char)228 + String("m ")) + String(DOF));
+        break;
+    }
+
+    lcd.setCursor(8, 0);
+    switch (ShootMode) {
+      case 0:
+        lcd.print(F("N"));
+        break;
+
+      case 1:
+        lcd.print(F("L"));
+        break;
+    }
+
+    lcd.setCursor(10, 0);
+    switch (presetVal) {
+      case 0:
+        lcd.print(F("M"));
+        break;
+
+      case 1:
+        lcd.print(F("R"));
+        break;
+    }
+
+    lcd.setCursor(12, 0);
+    switch (stepsI) {
+      case 0:
+        lcd.print(F("norm"));
+        break;
+
+      case 1:
+        lcd.print(F("hRes"));
+        break;
+    }
+
+    lcd.setCursor(0, 1);
+    lcd.print(String("exp ") + String(timing) + String("s"));
+    lcd.setCursor(7, 1);
+    lcd.print(String(" move ") + String(timingMove) + String("s"));  //timingMove
   }
-  
-  lcd.setCursor(8, 0);
-  switch (ShootMode) {
-    case 0:
-      lcd.print(F("N"));
-      break;
-
-    case 1:
-      lcd.print(F("L"));
-      break;
-  }
-
-  lcd.setCursor(10, 0);
-  switch (presetVal) {
-    case 0:
-      lcd.print(F("M"));
-      break;
-
-    case 1:
-      lcd.print(F("R"));
-      break;
-  }
-
-  lcd.setCursor(12, 0);
-  switch (stepsI) {
-    case 0:
-      lcd.print(F("norm"));
-      break;
-
-    case 1:
-      lcd.print(F("hRes"));
-      break;
-  }
-
-  lcd.setCursor(0, 1);
-  lcd.print(String("exp ") + String(timing) + String("s"));
-  lcd.setCursor(7, 1);
-  lcd.print(String(" move ") + String(timingMove) + String("s"));  //timingMove
-}
 
 //------------------------------------------------------
 //......................................................
@@ -624,7 +793,6 @@ void delTrace() {
 }
 
 //------------------------------------------------------
-//......................................................
 
 void SetSpeed() {
   lcd.clear();
@@ -634,9 +802,10 @@ void SetSpeed() {
   lcd.print(F("per single step"));
   delay(1750);
 
-  motorSpeed = lcd.inputVal<int>("Input in ms", 200, 100, motorSpeed, 50);
+  motorSpeed = lcd.inputVal<int>("Input in ms", 200, 1000, motorSpeed, 50);
 }
 
+//------------------------------------------------------
 void SetStepValue() {
   lcd.clear();
   lcd.setCursor(3, 0);
@@ -646,8 +815,6 @@ void SetStepValue() {
   delay(1750);
 
   stepsI = lcd.inputVal<int>("0 = OFF / 1 = ON", 0, 1, stepsI, 1);
-  DOF = 250;
-  writeIntIntoEEPROM(15, DOF);
   actualState = 0;
   motorState = 0;
 }
@@ -698,6 +865,9 @@ void SetModeFS() {
   lcd.setCursor(1, 1);
   lcd.print(F("preset chosen"));
   delay(1750);
+
+  actualState = 0;
+  motorState = 0;
 }
 
 //------------------------------------------------------
@@ -713,7 +883,7 @@ void SetModeM() {
   AutoReturn = readIntFromEEPROM(57);
   motorSpeed = readIntFromEEPROM(60);
   added = readIntFromEEPROM(63);
-  bootVal = readIntFromEEPROM(66);
+  bootVal = readIntFromEEPROM(33);
   delay(100);
   writeIntIntoEEPROM(36, stepsI);
   writeIntIntoEEPROM(39, timing);
@@ -725,7 +895,7 @@ void SetModeM() {
   writeIntIntoEEPROM(57, AutoReturn);
   writeIntIntoEEPROM(60, motorSpeed);
   writeIntIntoEEPROM(63, added);
-  writeIntIntoEEPROM(66, bootVal);
+  writeIntIntoEEPROM(33, bootVal);
   delay(100);
   presetVal = 0;
 
@@ -735,6 +905,9 @@ void SetModeM() {
   lcd.setCursor(1, 1);
   lcd.print(F("preset chosen"));
   delay(1750);
+
+  actualState = 0;
+  motorState = 0;
 }
 
 //------------------------------------------------------
@@ -749,14 +922,14 @@ void SetDOF() {
           lcd.setCursor(0, 0);
           lcd.print(F("nm/step - normal"));
           delay(1750);
-          DOF = lcd.inputVal<int>("Input nm/step", 10, 1000, DOF, 10);
+          DOF = lcd.inputVal<int>("Input nm/step", 10, 1800, DOF, 5);
           break;
 
         case 1:
           lcd.setCursor(0, 0);
           lcd.print(F("nm/step - HiRes"));
           delay(1750);
-          DOF = lcd.inputVal<int>("Input nm/step", 5, 500, DOF, 5);
+          DOF = lcd.inputVal<int>("Input nm/step", 5, 1000, DOF, 1);
           break;
       }
       break;
@@ -783,21 +956,21 @@ void SetDOF() {
 
 
 
-/*
-  switch (stepsI) {
-    case 0:
-      lcd.setCursor(0, 0);
-      lcd.print(F("um/step"));
-      DOF = lcd.inputVal<int>("Input um/step", 20, 1500, DOF, 5);
-      break;
+  /*
+    switch (stepsI) {
+      case 0:
+        lcd.setCursor(0, 0);
+        lcd.print(F("um/step"));
+        DOF = lcd.inputVal<int>("Input um/step", 20, 1500, DOF, 5);
+        break;
 
-    case 1:
-      lcd.setCursor(0, 0);
-      lcd.print(F("um/step"));
-      DOF = lcd.inputVal<int>("Input um/step", 10, 652, DOF, 2);
-      break;
-  }
- */
+      case 1:
+        lcd.setCursor(0, 0);
+        lcd.print(F("um/step"));
+        DOF = lcd.inputVal<int>("Input um/step", 10, 652, DOF, 2);
+        break;
+    }
+  */
 }
 
 //------------------------------------------------------
@@ -809,17 +982,94 @@ void SetBoot() {
   lcd.print(F("init. BOOTscreen"));
   delay(1750);
   bootVal = lcd.inputVal<int>("0 = OFF / 1 = ON", 0, 1, bootVal);
+  writeIntIntoEEPROM(33, bootVal);
+  delay(500);
 }
 
 //------------------------------------------------------
-void SetPreset() {
+void SetPresetM() {
+  presetVal = 0;
+
+  stepsI = readIntFromEEPROM(36);
+  timing = readIntFromEEPROM(39);
+  DOF = readIntFromEEPROM(42);
+  timingMove = readIntFromEEPROM(45);
+  trigger = readIntFromEEPROM(48);
+  mirror = readIntFromEEPROM(51);
+  ShootMode = readIntFromEEPROM(54);
+  AutoReturn = readIntFromEEPROM(57);
+  motorSpeed = readIntFromEEPROM(60);
+  added = readIntFromEEPROM(63);
+  bootVal = readIntFromEEPROM(33);
+  delay(100);
+  writeIntIntoEEPROM(36, stepsI);
+  writeIntIntoEEPROM(39, timing);
+  writeIntIntoEEPROM(42, DOF);
+  writeIntIntoEEPROM(45, timingMove);
+  writeIntIntoEEPROM(48, trigger);
+  writeIntIntoEEPROM(51, mirror);
+  writeIntIntoEEPROM(54, ShootMode);
+  writeIntIntoEEPROM(57, AutoReturn);
+  writeIntIntoEEPROM(60, motorSpeed);
+  writeIntIntoEEPROM(63, added);
+  writeIntIntoEEPROM(33, bootVal);
+  writeIntIntoEEPROM(70, presetVal);
+  delay(100);
+  presetVal = 0;
+
   lcd.clear();
-  lcd.setCursor(5, 0);
-  lcd.print(F("choose"));
-  lcd.setCursor(0, 1);
-  lcd.print(F("autoload Preset."));
+  lcd.setCursor(3, 0);
+  lcd.print(F("Microscope"));
+  lcd.setCursor(1, 1);
+  lcd.print(F("preset chosen"));
   delay(1750);
-  bootVal = lcd.inputVal<int>("0 = M / 1 = Rail", 0, 1, presetVal);
+
+  actualState = 0;
+  motorState = 0;
+}
+
+//------------------------------------------------------
+
+
+void SetPresetR() {
+  presetVal = 1;
+
+  stepsI = readIntFromEEPROM(3);
+  timing = readIntFromEEPROM(6);
+  DOF = readIntFromEEPROM(9);
+  timingMove = readIntFromEEPROM(12);
+  trigger = readIntFromEEPROM(15);
+  mirror = readIntFromEEPROM(18);
+  ShootMode = readIntFromEEPROM(21);
+  AutoReturn = readIntFromEEPROM(24);
+  motorSpeed = readIntFromEEPROM(27);
+  added = readIntFromEEPROM(30);
+  bootVal = readIntFromEEPROM(33);
+  delay(100);
+  writeIntIntoEEPROM(3, stepsI);
+  writeIntIntoEEPROM(6, timing);
+  writeIntIntoEEPROM(9, DOF);
+  writeIntIntoEEPROM(12, timingMove);
+  writeIntIntoEEPROM(15, trigger);
+  writeIntIntoEEPROM(18, mirror);
+  writeIntIntoEEPROM(21, ShootMode);
+  writeIntIntoEEPROM(24, AutoReturn);
+  writeIntIntoEEPROM(27, motorSpeed);
+  writeIntIntoEEPROM(30, added);
+  writeIntIntoEEPROM(33, bootVal);
+  writeIntIntoEEPROM(70, presetVal);
+  delay(100);
+  presetVal = 1;
+
+  lcd.clear();
+  lcd.setCursor(3, 0);
+  lcd.print(F("MacroRail"));
+  lcd.setCursor(1, 1);
+  lcd.print(F("preset chosen"));
+  delay(1750);
+
+  actualState = 0;
+  motorState = 0;
 }
 
 //------------------------------------------------------
@@ -886,8 +1136,10 @@ void SetDelayTrigger() {
   lcd.print(F("trigger length"));
   delay(1750);
   trigger = lcd.inputVal<int>("Input delay (us)", 250, 2000, trigger, 250);
+
 }
 
+//------------------------------------------------------
 void SetMirror() {
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -897,7 +1149,6 @@ void SetMirror() {
   delay(1750);
   mirror = lcd.inputVal<int>("Input delay (us)", 250, 5000, mirror, 250);
 }
-
 
 
 //------------------------------------------------------
@@ -931,7 +1182,7 @@ void SetSave() {
     writeIntIntoEEPROM(57, AutoReturn);
     writeIntIntoEEPROM(60, motorSpeed);
     writeIntIntoEEPROM(63, added);
-    writeIntIntoEEPROM(66, bootVal);
+    writeIntIntoEEPROM(33, bootVal);
     writeIntIntoEEPROM(70, presetVal);
     delay(200);
   }
@@ -1031,8 +1282,8 @@ void SetDefaultsM() {
   lcd.print(F("Micro. loaded"));
   delay(750);
 
-  stepsI = 0;
-  timing = 2;
+  stepsI = 1;
+  timing = 3;
   DOF = 20; //250
   timingMove = 2;
   trigger = 500;
@@ -1040,7 +1291,7 @@ void SetDefaultsM() {
   ShootMode = 0;
   AutoReturn = 1;
   motorSpeed = 500;
-  added = 30;
+  added = 50;
   bootVal = 1;
   presetVal = 0;
 
@@ -1055,7 +1306,7 @@ void SetDefaultsM() {
   writeIntIntoEEPROM(57, AutoReturn);
   writeIntIntoEEPROM(60, motorSpeed);
   writeIntIntoEEPROM(63, added);
-  writeIntIntoEEPROM(66, bootVal);
+  writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(70, presetVal);
   delay(100);
 }
@@ -1067,6 +1318,7 @@ void SetDefaultsM() {
 void setup() {
   lcd.begin();
   lcd.attachEncoder(pinCLK, pinDT, pinSW);
+  delay(500);
   presetVal = readIntFromEEPROM(70);
 
   delay(500);
@@ -1085,6 +1337,7 @@ void setup() {
     added = readIntFromEEPROM(30);
     bootVal = readIntFromEEPROM(33);
     delay(200);
+    presetVal = 1;
   }
 
   //load preset Microscope
@@ -1099,8 +1352,9 @@ void setup() {
     AutoReturn = readIntFromEEPROM(57);
     motorSpeed = readIntFromEEPROM(60);
     added = readIntFromEEPROM(63);
-    bootVal = readIntFromEEPROM(66);
+    bootVal = readIntFromEEPROM(33);
     delay(200);
+    presetVal = 0;
   }
 
   delay(200);
@@ -1162,7 +1416,18 @@ void loop() {
   //------------------------------------------------------
   // IF 1 PRESSED (GO BACK)
   if (customKey == '1') {
-    motorDelay = motorSpeed;
+
+    switch (stepsI) {
+      case 0:
+        motorDelay = motorSpeed * 2;
+        break;
+
+      case 1:
+        motorDelay = motorSpeed;
+        break;
+    }
+
+
     for (;;) {
       char customKey = keypad.getKey();
       goFront();
@@ -1198,7 +1463,16 @@ void loop() {
   //------------------------------------------------------
   // IF 3 PRESSED (GO FRONT)
   if (customKey == '3') {
-    motorDelay = motorSpeed;
+    switch (stepsI) {
+      case 0:
+        motorDelay = motorSpeed * 2;
+        break;
+
+      case 1:
+        motorDelay = motorSpeed;
+        break;
+    }
+
     for (;;) {
       char customKey = keypad.getKey();
       goBack();
