@@ -1,5 +1,5 @@
-#ifndef FCCFS-PRO_1.1.5_H
-#define FCCFS-PRO_1.1.5_H
+#ifndef FCCFS-PRO_1.1.6A_H
+#define FCCFS-PRO_1.1.6A_H
 
 #include <Arduino.h>
 
@@ -23,6 +23,7 @@ void goRunB();
 int getItemIndexByKey(uint8_t key);
 void LCDRepaint();
 void delTrace();
+void SetAutoSave();
 void SetSpeed();
 void SetStepValue();
 void SetDOF();

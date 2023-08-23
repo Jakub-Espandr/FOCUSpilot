@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.1.6a] - 2023-08-23
+
+### Added
+- **AutoSave functionality** - automatic saving of settings when enabled
+- **Enhanced initialization display** - shows mode and AutoSave status on startup
+- **Relay test on startup** - verifies camera trigger relay functionality
+- **Unified focus stacking algorithms** - consistent logic for Forward and Backward operations
+- **Improved user interface** - better status information display
+
+### Changed
+- **Boot screen timing** - increased delay from 300ms to 350ms for better readability
+- **RUN Forward algorithm** - now uses same optimization factors as RUN Backward
+  - Microscope mode: 0.75x DOF multiplier for both Normal and HiRes
+  - Rail mode: 0.8x DOF multiplier for both Normal and HiRes
+- **Settings management** - automatic EEPROM writing when AutoSave is enabled
+- **Menu structure** - added AutoSave option in SETTINGS menu
+- **EEPROM storage** - added autoSave setting storage at address 66
+
+### Technical Improvements
+- **Automatic settings persistence** - changes are saved immediately when AutoSave is ON
+- **Enhanced startup sequence** - better initialization with status display
+- **Improved algorithm consistency** - unified approach for both stacking directions
+- **Better error prevention** - relay test ensures proper camera trigger functionality
+- **Optimized memory usage** - more efficient EEPROM management
+
+### Bug Fixes
+- **Fixed algorithm inconsistency** - Forward and Backward now use same optimization factors
+- **Improved startup reliability** - relay test prevents camera trigger issues
+- **Enhanced user feedback** - clearer status information during initialization
+
+---
+
 ## [1.1.5] - 2023-06-16
 
 ### Added

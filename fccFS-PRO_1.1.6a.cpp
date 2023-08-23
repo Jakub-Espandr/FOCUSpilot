@@ -1,4 +1,4 @@
-#include "fccFS-PRO_1.1.5.h"
+#include "fccFS-PRO_1.1.6a.h"
 #include <Arduino.h>
 
 #include <Wire.h>
@@ -38,7 +38,7 @@ int readIntFromEEPROM(int address) {
 }
 //------------------------------------------------------
 // SHOW BOOTSCREEN
-char* messagePadded = "     v1.1.5     www.FlyCamCzech.cz/FocusStacking                ";  //pointer
+char* messagePadded = "     v1.1.6a    www.FlyCamCzech.cz/FocusStacking                ";  //pointer
 void showLetters(int printStart, int startLetter) {
   lcd.setCursor(printStart, 1);
   for (int letter = startLetter; letter <= startLetter + 15; letter++)  // Print only 16 chars in Line #2 starting 'startLetter'
@@ -46,7 +46,7 @@ void showLetters(int printStart, int startLetter) {
     lcd.print(messagePadded[letter]);
   }
   lcd.print(" ");
-  delay(300);
+  delay(350);
 }
 
 //------------------------------------------------------
@@ -82,6 +82,7 @@ int trigger;
 int mirror;
 int bootVal;
 int presetVal;
+int autoSave;
 unsigned long actualState = 0;
 unsigned long motorState = 0;
 unsigned long focusMotorState = 0;
@@ -136,6 +137,7 @@ enum { menuBack,
        menuGo,
        menuGoF,
        menuGoB,
+       menuAutoSave,
      };
 //------------------------------------------------------
 // MENU VOIDS
@@ -166,15 +168,16 @@ void SetModeFS();
 void SetModeM();
 void SetPresetR();
 void SetPresetM();
+void SetAutoSave();
 //------------------------------------------------------
 //------------------------------------------------------
 //------------------------------------------------------
 // VOIDS  VOIDS  VOIDS  VOIDS  VOIDS  VOIDS  VOIDS  VOIDS
 void releON() {
-  digitalWrite(releTrig, HIGH);
+  digitalWrite(releTrig, LOW);
 }
 void releOFF() {
-  digitalWrite(releTrig, LOW);
+  digitalWrite(releTrig, HIGH);
 }
 
 //------------------------------------------------------
@@ -316,14 +319,12 @@ void goRunF() {
     case 0:
       switch (stepsI) {
         case 0:
-          localDOF = (DOF / 2);
-          localDOF = localDOF;
+          localDOF = ((DOF / 2) * 0.75);
           focusMotorState = (motorState / localDOF);
           break;
 
         case 1:
-          localDOF = DOF;
-          localDOF = localDOF;
+          localDOF = (DOF * 0.75);
           focusMotorState = (motorState / localDOF);
           break;
       }
@@ -332,14 +333,12 @@ void goRunF() {
     case 1:
       switch (stepsI) {
         case 0:
-          localDOF = (DOF / 2);
-          localDOF = localDOF;
+          localDOF = ((DOF / 2) * 0.8);
           focusMotorState = (motorState / localDOF);
           break;
 
         case 1:
-          localDOF = DOF;
-          localDOF = localDOF;
+          localDOF = (DOF * 0.8);
           focusMotorState = (motorState / localDOF);
           break;
       }
@@ -428,33 +427,35 @@ void goRunB() {
   emergency = 0;
 
 
-if (presetVal == 0) {
-  switch (stepsI) {
+  switch (presetVal) {
+    case 0:
+      switch (stepsI) {
         case 0:
-          localDOF = (DOF / 2)*0.75;
-          focusMotorState = motorState / localDOF;
+          localDOF = ((DOF / 2) * 0.75);
+          focusMotorState = (motorState / localDOF);
           break;
 
         case 1:
-          localDOF = DOF*0.75;
-          focusMotorState = motorState / localDOF;
+          localDOF = (DOF * 0.75);
+          focusMotorState = (motorState / localDOF);
           break;
       }
-}
+      break;
 
-if (presetVal == 1) {
-  switch (stepsI) {
+    case 1:
+      switch (stepsI) {
         case 0:
-          localDOF = (DOF / 2)*0.8;
-          focusMotorState = motorState / localDOF;
+          localDOF = ((DOF / 2) * 0.8);
+          focusMotorState = (motorState / localDOF);
           break;
 
         case 1:
-          localDOF = (DOF*0.8);
-          focusMotorState = motorState / localDOF;
+          localDOF = (DOF * 0.8);
+          focusMotorState = (motorState / localDOF);
           break;
       }
-}
+      break;
+  }
 
   delayTiming = timing * 1000;
   delayTimingMove = timingMove * 1000;
@@ -682,6 +683,7 @@ sMenuItem menu[] = {
   { menuSettings, menuPreset, " PRESET a.LOAD", NULL },
   { menuPreset, menuPresetM, " Microscope", SetPresetM },
   { menuPreset, menuPresetR, " Rail", SetPresetR },
+  { menuSettings, menuAutoSave, " AutoSAVE", SetAutoSave },
   { menuPreset, menuBack, " goBACK", NULL },
 
   { menuSettings, menuSave, " SAVE", NULL },
@@ -708,8 +710,8 @@ sMenuItem menu[] = {
   { menuRoot, menuInfo, "VERSION", NULL },
   { menuInfo, menuInfoDisp, "model: fccFS2 PRO ", NULL },
   { menuInfo, menuInfoDisp, "by FlyCamCzech", NULL },
-  { menuInfo, menuInfoDisp, "version 1.1.5", NULL },
-  { menuInfo, menuInfoDisp, "16. Jun. 2023", NULL },
+  { menuInfo, menuInfoDisp, "version 1.1.6a", NULL },
+  { menuInfo, menuInfoDisp, "23. Aug. 2023", NULL },
   { menuInfo, menuBack, " EXIT", NULL },
 
   { menuRoot, menuBack, "EXIT", NULL },
@@ -728,6 +730,46 @@ int getItemIndexByKey(uint8_t key) {
 //------------------------------------------------------
 //......................................................
 void LCDRepaint() {
+
+  if (firstRun == 0) {
+    lcd.clear();
+
+    lcd.setCursor(0, 0);
+    switch (presetVal) {
+      case 0:
+        lcd.print(F("Micr."));
+        break;
+
+      case 1:
+        lcd.print(F("Rail"));
+        break;
+    }
+
+    lcd.setCursor(6, 0);
+    switch (autoSave) {
+      case 0:
+        lcd.print(F("a.SAVE OFF"));
+        break;
+
+      case 1:
+        lcd.print(F("a.SAVE ON"));
+        break;
+    }
+
+    lcd.setCursor(2, 1);
+    switch (AutoReturn) {
+      case 0:
+        lcd.print(F("autoReturn OFF"));
+        break;
+
+      case 1:
+        lcd.print(F("autoReturn ON"));
+        break;
+    }
+
+    delay(4000);
+    firstRun = 1;
+
     lcd.clear();
     lcd.setCursor(0, 0);
 
@@ -779,6 +821,57 @@ void LCDRepaint() {
     lcd.setCursor(7, 1);
     lcd.print(String(" move ") + String(timingMove) + String("s"));  //timingMove
   }
+  lcd.clear();
+  lcd.setCursor(0, 0);
+
+  switch (presetVal) {
+    case 0:
+      lcd.print(String("nm ") + String(DOF));
+      break;
+
+    case 1:
+      lcd.print(String((char)228 + String("m ")) + String(DOF));
+      break;
+  }
+
+  lcd.setCursor(8, 0);
+  switch (ShootMode) {
+    case 0:
+      lcd.print(F("N"));
+      break;
+
+    case 1:
+      lcd.print(F("L"));
+      break;
+  }
+
+  lcd.setCursor(10, 0);
+  switch (presetVal) {
+    case 0:
+      lcd.print(F("M"));
+      break;
+
+    case 1:
+      lcd.print(F("R"));
+      break;
+  }
+
+  lcd.setCursor(12, 0);
+  switch (stepsI) {
+    case 0:
+      lcd.print(F("norm"));
+      break;
+
+    case 1:
+      lcd.print(F("hRes"));
+      break;
+  }
+
+  lcd.setCursor(0, 1);
+  lcd.print(String("exp ") + String(timing) + String("s"));
+  lcd.setCursor(7, 1);
+  lcd.print(String(" move ") + String(timingMove) + String("s"));  //timingMove
+}
 
 //------------------------------------------------------
 //......................................................
@@ -793,6 +886,20 @@ void delTrace() {
 }
 
 //------------------------------------------------------
+//......................................................
+void SetAutoSave() {
+  lcd.clear();
+  lcd.setCursor(3, 0);
+  lcd.print(F("autoSAVE"));
+  lcd.setCursor(2, 1);
+  lcd.print(F("new values"));
+  delay(1750);
+
+  autoSave = lcd.inputVal<int>("0 = OFF / 1 = ON", 0, 1, autoSave, 1);
+  writeIntIntoEEPROM(66, autoSave);
+  delay(500);
+}
+//------------------------------------------------------
 
 void SetSpeed() {
   lcd.clear();
@@ -803,6 +910,36 @@ void SetSpeed() {
   delay(1750);
 
   motorSpeed = lcd.inputVal<int>("Input in ms", 200, 1000, motorSpeed, 50);
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(60, motorSpeed);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(27, motorSpeed);
+          delay(200);
+          break;
+      }
+      break;
+  }
+
+
 }
 
 //------------------------------------------------------
@@ -817,6 +954,34 @@ void SetStepValue() {
   stepsI = lcd.inputVal<int>("0 = OFF / 1 = ON", 0, 1, stepsI, 1);
   actualState = 0;
   motorState = 0;
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(36, stepsI);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(3, stepsI);
+          delay(200);
+          break;
+      }
+      break;
+  }
 }
 
 //------------------------------------------------------
@@ -844,6 +1009,7 @@ void SetModeFS() {
   motorSpeed = readIntFromEEPROM(27);
   added = readIntFromEEPROM(30);
   bootVal = readIntFromEEPROM(33);
+  autoSave = readIntFromEEPROM(66);
   delay(100);
   writeIntIntoEEPROM(3, stepsI);
   writeIntIntoEEPROM(6, timing);
@@ -856,6 +1022,7 @@ void SetModeFS() {
   writeIntIntoEEPROM(27, motorSpeed);
   writeIntIntoEEPROM(30, added);
   writeIntIntoEEPROM(33, bootVal);
+  writeIntIntoEEPROM(66, autoSave);
   delay(100);
   presetVal = 1;
 
@@ -884,6 +1051,7 @@ void SetModeM() {
   motorSpeed = readIntFromEEPROM(60);
   added = readIntFromEEPROM(63);
   bootVal = readIntFromEEPROM(33);
+  autoSave = readIntFromEEPROM(66);
   delay(100);
   writeIntIntoEEPROM(36, stepsI);
   writeIntIntoEEPROM(39, timing);
@@ -896,6 +1064,7 @@ void SetModeM() {
   writeIntIntoEEPROM(60, motorSpeed);
   writeIntIntoEEPROM(63, added);
   writeIntIntoEEPROM(33, bootVal);
+  writeIntIntoEEPROM(66, autoSave);
   delay(100);
   presetVal = 0;
 
@@ -971,6 +1140,35 @@ void SetDOF() {
         break;
     }
   */
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(42, DOF);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(9, DOF);
+          delay(200);
+          break;
+      }
+      break;
+  }
+
 }
 
 //------------------------------------------------------
@@ -1001,6 +1199,7 @@ void SetPresetM() {
   motorSpeed = readIntFromEEPROM(60);
   added = readIntFromEEPROM(63);
   bootVal = readIntFromEEPROM(33);
+  autoSave = readIntFromEEPROM(66);
   delay(100);
   writeIntIntoEEPROM(36, stepsI);
   writeIntIntoEEPROM(39, timing);
@@ -1014,6 +1213,7 @@ void SetPresetM() {
   writeIntIntoEEPROM(63, added);
   writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(70, presetVal);
+  writeIntIntoEEPROM(66, autoSave);
   delay(100);
   presetVal = 0;
 
@@ -1045,6 +1245,7 @@ void SetPresetR() {
   motorSpeed = readIntFromEEPROM(27);
   added = readIntFromEEPROM(30);
   bootVal = readIntFromEEPROM(33);
+  autoSave = readIntFromEEPROM(66);
   delay(100);
   writeIntIntoEEPROM(3, stepsI);
   writeIntIntoEEPROM(6, timing);
@@ -1058,6 +1259,7 @@ void SetPresetR() {
   writeIntIntoEEPROM(30, added);
   writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(70, presetVal);
+  writeIntIntoEEPROM(66, autoSave);
   delay(100);
   presetVal = 1;
 
@@ -1081,6 +1283,34 @@ void SetShootMode() {
   lcd.print(F("mirrorLOCK func."));
   delay(1750);
   ShootMode = lcd.inputVal<int>("0 = OFF / 1 = ON", 0, 1, ShootMode);
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(54, ShootMode);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(21, ShootMode);
+          delay(200);
+          break;
+      }
+      break;
+  }
 }
 
 //------------------------------------------------------
@@ -1092,6 +1322,34 @@ void SetAdded() {
   lcd.print(F("added to move"));
   delay(1750);
   added = lcd.inputVal<int>("Input um", 10, 100, added, 10);
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(63, added);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(30, added);
+          delay(200);
+          break;
+      }
+      break;
+  }
 }
 
 //------------------------------------------------------
@@ -1103,6 +1361,34 @@ void SetAutoReturn() {
   lcd.print(F("after stack"));
   delay(1750);
   AutoReturn = lcd.inputVal<int>("0 = OFF / 1 = ON", 0, 1, AutoReturn);
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(57, AutoReturn);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(24, AutoReturn);
+          delay(200);
+          break;
+      }
+      break;
+  }
 }
 
 //------------------------------------------------------
@@ -1114,6 +1400,34 @@ void SetDelay() {
   lcd.print(F("per single photo"));
   delay(1750);
   timing = lcd.inputVal<int>("Input delay (s)", 1, 20, timing);
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(39, timing);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(6, timing);
+          delay(200);
+          break;
+      }
+      break;
+  }
 }
 
 //------------------------------------------------------
@@ -1125,6 +1439,34 @@ void SetDelayMove() {
   lcd.print(F("move and photo"));
   delay(1750);
   timingMove = lcd.inputVal<int>("Input delay (s)", 1, 20, timingMove);
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(45, timingMove);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(12, timingMove);
+          delay(200);
+          break;
+      }
+      break;
+  }
 }
 
 //------------------------------------------------------
@@ -1137,6 +1479,33 @@ void SetDelayTrigger() {
   delay(1750);
   trigger = lcd.inputVal<int>("Input delay (us)", 250, 2000, trigger, 250);
 
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(48, trigger);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(15, trigger);
+          delay(200);
+          break;
+      }
+      break;
+  }
 }
 
 //------------------------------------------------------
@@ -1148,6 +1517,34 @@ void SetMirror() {
   lcd.print(F("mirror vibration"));
   delay(1750);
   mirror = lcd.inputVal<int>("Input delay (us)", 250, 5000, mirror, 250);
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(51, mirror);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(18, mirror);
+          delay(200);
+          break;
+      }
+      break;
+  }
 }
 
 
@@ -1167,6 +1564,7 @@ void SetSave() {
     writeIntIntoEEPROM(30, added);
     writeIntIntoEEPROM(33, bootVal);
     writeIntIntoEEPROM(70, presetVal);
+    writeIntIntoEEPROM(66, autoSave);
     delay(200);
   }
 
@@ -1184,6 +1582,7 @@ void SetSave() {
     writeIntIntoEEPROM(63, added);
     writeIntIntoEEPROM(33, bootVal);
     writeIntIntoEEPROM(70, presetVal);
+    writeIntIntoEEPROM(66, autoSave);
     delay(200);
   }
 
@@ -1258,6 +1657,7 @@ void SetDefaultsFS() {
   added = 30;
   bootVal = 1;
   presetVal = 1;
+  autoSave = 0;
 
   delay(100);
   writeIntIntoEEPROM(3, stepsI);
@@ -1272,6 +1672,7 @@ void SetDefaultsFS() {
   writeIntIntoEEPROM(30, added);
   writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(70, presetVal);
+  writeIntIntoEEPROM(66, autoSave);
   delay(100);
 }
 
@@ -1294,6 +1695,7 @@ void SetDefaultsM() {
   added = 50;
   bootVal = 1;
   presetVal = 0;
+  autoSave = 0;
 
   delay(100);
   writeIntIntoEEPROM(36, stepsI);
@@ -1308,6 +1710,7 @@ void SetDefaultsM() {
   writeIntIntoEEPROM(63, added);
   writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(70, presetVal);
+  writeIntIntoEEPROM(66, autoSave);
   delay(100);
 }
 
@@ -1336,6 +1739,7 @@ void setup() {
     motorSpeed = readIntFromEEPROM(27);
     added = readIntFromEEPROM(30);
     bootVal = readIntFromEEPROM(33);
+    autoSave = readIntFromEEPROM(66);
     delay(200);
     presetVal = 1;
   }
@@ -1353,6 +1757,7 @@ void setup() {
     motorSpeed = readIntFromEEPROM(60);
     added = readIntFromEEPROM(63);
     bootVal = readIntFromEEPROM(33);
+    autoSave = readIntFromEEPROM(66);
     delay(200);
     presetVal = 0;
   }
@@ -1383,8 +1788,13 @@ void setup() {
   lcd.clear();
   LCDRepaint();
   focusCounter = 1;  //1 due restriction of division with 0
-}
 
+  releON();
+  delay(500);
+  releOFF();
+  delay(100);
+
+}
 //------------------------------------------------------
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //------------------------------------------------------

@@ -17,6 +17,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 - **Automated Focus Stacking**: Automatically moves through focus positions and triggers camera capture
 - **Professional Preset System**: Dedicated modes for Macro Rail and Microscope applications
 - **Enhanced Algorithms**: Mode-specific focus stacking algorithms optimized for different applications
+- **AutoSave Functionality**: Automatic saving of settings when enabled for seamless operation
 - **Mirror Lock Support**: Vibration-free photography with configurable mirror lock timing
 - **Auto Return Function**: Automatic return to start position after stacking completion
 - **Manual Control**: Manual forward/backward movement with position memory
@@ -31,6 +32,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 - **HiRes Mode**: High-resolution stepping (1/32 microstepping) for precise positioning
 - **Direct Preset Selection**: Quick access to Microscope and Rail presets
 - **Smart Unit Display**: Automatic unit display (nm/μm) based on selected mode
+- **Relay Test**: Automatic camera trigger relay verification on startup
 
 ---
 
@@ -75,7 +77,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 
 1. **Install Libraries**: Install the required Arduino libraries through the Library Manager
 2. **Connect Hardware**: Wire the components according to the pin diagram above
-3. **Upload Code**: Upload the `fccFS-PRO_1.1.5.ino` file to your Arduino board
+3. **Upload Code**: Upload the `fccFS-PRO_1.1.6a.ino` file to your Arduino board
 4. **Power On**: Connect power and initialize the system
 
 ---
@@ -122,6 +124,7 @@ Press the encoder button to access the main menu:
   - PRESET a.LOAD: Choose autoload preset
     - Microscope: Load microscope preset
     - Rail: Load rail preset
+  - AutoSAVE: Enable/disable automatic settings saving
   - SAVE: Save current settings
 - **Rail/Microscope**: Mode selection
   - Rail: Switch to macro rail mode
@@ -135,8 +138,8 @@ Press the encoder button to access the main menu:
 - **VERSION**: System information
   - model: fccFS2 PRO
   - by FlyCamCzech
-  - version 1.1.5
-  - 16. Jun. 2023
+  - version 1.1.6a
+  - 23. Aug. 2023
 
 ### Configuration Parameters
 
@@ -163,6 +166,7 @@ Press the encoder button to access the main menu:
 - **Auto Return**: Enable/disable automatic return to start position
 - **Boot screen**: Enable/disable startup screen
 - **Preset autoload**: Choose default mode (Microscope/Rail)
+- **AutoSave**: Enable/disable automatic settings saving
 
 ---
 
@@ -170,10 +174,10 @@ Press the encoder button to access the main menu:
 
 ```
 FOCUSpilot/
-├── fccFS-PRO_1.1.5/
-│   └── fccFS-PRO_1.1.5.ino    # Main Arduino sketch (current version)
-├── fccFS-PRO_1.1.5.cpp        # Implementation file
-├── fccFS-PRO_1.1.5.h          # Header file
+├── fccFS-PRO_1.1.6a/
+│   └── fccFS-PRO_1.1.6a.ino    # Main Arduino sketch (current version)
+├── fccFS-PRO_1.1.6a.cpp        # Implementation file
+├── fccFS-PRO_1.1.6a.h          # Header file
 ├── libraries/                  # Required Arduino libraries
 │   ├── EEPROM/
 │   ├── EEPROMTyped-1.0.0/
@@ -190,12 +194,13 @@ FOCUSpilot/
 
 1. **Mode Selection**: Choose between Rail or Microscope mode based on your application
 2. **Setup**: Configure step size, DoF, timing, and trigger settings in PREFERENCES/SETTINGS
-3. **Positioning**: Use manual controls to set start and end positions
+3. **AutoSave Configuration**: Enable AutoSave for automatic settings persistence
+4. **Positioning**: Use manual controls to set start and end positions
    - Move to desired start position and press button 2
    - Move to desired end position and press button 4
-4. **Execution**: Choose RUN Forward or RUN Backward from the menu
-5. **Monitoring**: The LCD displays progress with remaining time estimation
-6. **Completion**: System returns to start position if Auto Return is enabled
+5. **Execution**: Choose RUN Forward or RUN Backward from the menu
+6. **Monitoring**: The LCD displays progress with remaining time estimation
+7. **Completion**: System returns to start position if Auto Return is enabled
 
 ---
 
@@ -212,6 +217,7 @@ FOCUSpilot/
 - Auto Return: ON
 - Motor speed: 500ms
 - Added length: 30μm
+- AutoSave: OFF
 
 ### Microscope Mode
 - Step Size: HiRes (1/32) - enabled by default
@@ -224,6 +230,7 @@ FOCUSpilot/
 - Auto Return: ON
 - Motor speed: 500ms
 - Added length: 50μm (increased from 30μm)
+- AutoSave: OFF
 
 ---
 
