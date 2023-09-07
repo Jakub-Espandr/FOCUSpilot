@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.1.6b] - 2023-09-07
+
+### Changed
+- **Hardware compatibility update** - relay trigger pin changed from 11 to 10
+- **Code optimization** - removed unused variables for cleaner codebase
+  - Removed `localAdded` variable (was declared but never used)
+  - Removed `percentage` variable (was declared but never used)
+  - Removed `newStepsI` variable (was declared but never used)
+  - Removed `delayTimingTrigger` variable (was declared but never used)
+
+### Technical Improvements
+- **Memory optimization** - reduced RAM usage by removing unused variables
+- **Code cleanup** - streamlined variable declarations for better maintainability
+- **Hardware compatibility** - updated pin assignment for relay trigger
+
+### Bug Fixes
+- **Fixed hardware compatibility** - corrected relay trigger pin assignment
+- **Improved code efficiency** - removed unused variables that were consuming memory
+
+---
+
 ## [1.1.6a] - 2023-08-23
 
 ### Added

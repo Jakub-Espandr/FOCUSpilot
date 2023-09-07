@@ -69,7 +69,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 | Stepper Motor | 12 | Direction pin |
 | Stepper Motor | 17 | Enable pin |
 | Microstep Pins | 16, 15, 14 | MS1, MS2, MS3 |
-| Camera Trigger | 11 | Relay trigger |
+| Camera Trigger | 10 | Relay trigger |
 
 ---
 
@@ -77,7 +77,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 
 1. **Install Libraries**: Install the required Arduino libraries through the Library Manager
 2. **Connect Hardware**: Wire the components according to the pin diagram above
-3. **Upload Code**: Upload the `fccFS-PRO_1.1.6a.ino` file to your Arduino board
+3. **Upload Code**: Upload the `fccFS-PRO_1.1.6b.ino` file to your Arduino board
 4. **Power On**: Connect power and initialize the system
 
 ---
@@ -138,8 +138,8 @@ Press the encoder button to access the main menu:
 - **VERSION**: System information
   - model: fccFS2 PRO
   - by FlyCamCzech
-  - version 1.1.6a
-  - 23. Aug. 2023
+  - version 1.1.6b
+  - 07. Sep. 2023
 
 ### Configuration Parameters
 
@@ -174,10 +174,10 @@ Press the encoder button to access the main menu:
 
 ```
 FOCUSpilot/
-├── fccFS-PRO_1.1.6a/
-│   └── fccFS-PRO_1.1.6a.ino    # Main Arduino sketch (current version)
-├── fccFS-PRO_1.1.6a.cpp        # Implementation file
-├── fccFS-PRO_1.1.6a.h          # Header file
+├── fccFS-PRO_1.1.6b/
+│   └── fccFS-PRO_1.1.6b.ino    # Main Arduino sketch (current version)
+├── fccFS-PRO_1.1.6b.cpp        # Implementation file
+├── fccFS-PRO_1.1.6b.h          # Header file
 ├── libraries/                  # Required Arduino libraries
 │   ├── EEPROM/
 │   ├── EEPROMTyped-1.0.0/
