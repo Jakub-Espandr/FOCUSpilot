@@ -1,5 +1,5 @@
-#ifndef FCCFS-PRO_1.1.6B_H
-#define FCCFS-PRO_1.1.6B_H
+#ifndef FCCFS-PRO_1.1.6_H
+#define FCCFS-PRO_1.1.6_H
 
 #include <Arduino.h>
 
@@ -11,11 +11,14 @@ void releOFF();
 void capture();
 void setStepping();
 void goBack();
+void goBack2();
 void goFront();
+void goFront2();
 void motorStop();
 void goB();
 void goF();
 void goRunF();
+void goRunB();
 void goRunB();
 int getItemIndexByKey(uint8_t key);
 void LCDRepaint();
@@ -23,6 +26,9 @@ void delTrace();
 void SetAutoSave();
 void SetSpeed();
 void SetStepValue();
+void SetDOF();
+void SetModeFS();
+void SetModeM();
 void SetDOF();
 void SetBoot();
 void SetPresetM();
@@ -35,10 +41,10 @@ void SetDelayMove();
 void SetDelayTrigger();
 void SetMirror();
 void SetSave();
+void SetSaveFS();
+void SetSaveM();
 void SetDefaultsFS();
 void SetDefaultsM();
-void SetModeFS();
-void SetModeM();
 void setup();
 void loop();
 

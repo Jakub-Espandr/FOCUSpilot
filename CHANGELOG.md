@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.6] - 2023-11-13
+
+### Changed
+- **Version numbering** - updated from 1.1.6b to 1.1.6
+- **Release date** - updated to 13. Nov. 2023
+
+### Reverted
+- **Code optimization reverted** - restored unused variables that were removed in 1.1.6b:
+  - Restored `localAdded` variable (was removed in 1.1.6b)
+  - Restored `percentage` variable (was removed in 1.1.6b)
+  - Restored `newStepsI` variable (was removed in 1.1.6b)
+  - Restored `delayTimingTrigger` variable (was removed in 1.1.6b)
+
+### Technical Changes
+- **Increased memory usage** - restored variables consume additional RAM
+- **Code maintainability** - reverted to less optimized code structure
+- **No functional changes** - all features remain identical to 1.1.6b
+
+---
+
 ## [1.1.6b] - 2023-09-07
 
 ### Changed
