@@ -77,7 +77,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 
 1. **Install Libraries**: Install the required Arduino libraries through the Library Manager
 2. **Connect Hardware**: Wire the components according to the pin diagram above
-3. **Upload Code**: Upload the `fccFS-PRO_1.1.6.ino` file to your Arduino board
+3. **Upload Code**: Upload the `fccFS-PRO_1.1.7b.ino` file to your Arduino board
 4. **Power On**: Connect power and initialize the system
 
 ---
@@ -101,7 +101,13 @@ Press the encoder button to access the main menu:
 - **testSHOT**: Trigger camera shutter manually
 - **RUN**: Automated focus stacking sequences
   - RUN Forward: Execute forward focus stacking with settings
+    - um/step small: Set precise depth of field for detailed work
+    - um/step big: Set extended depth of field for faster stacking
+    - RUN: Execute forward focus stacking
   - RUN Backward: Execute backward focus stacking with settings
+    - um/step small: Set precise depth of field for detailed work
+    - um/step big: Set extended depth of field for faster stacking
+    - RUN: Execute backward focus stacking
   - Delete TRACE: Clear saved positions
 - **GO position**: Manual movement commands
   - BACK pos.: Move to start position
@@ -109,7 +115,8 @@ Press the encoder button to access the main menu:
   - Delete TRACE: Clear saved positions
 - **PREFERENCES**: Configure basic parameters
   - HiRes.: Set high-resolution stepping (0=OFF/1=ON)
-  - um/step: Set depth of field per step
+  - um/step small: Set precise depth of field per step
+  - um/step big: Set extended depth of field per step
   - time shutter: Set shutter timing
   - time vibr.: Set vibration delay
   - mirrorLock: Enable/disable mirror lock function
@@ -138,8 +145,8 @@ Press the encoder button to access the main menu:
 - **VERSION**: System information
   - model: fccFS2 PRO
   - by FlyCamCzech
-  - version 1.1.6
-  - 13. Nov. 2023
+  - version 1.1.7b
+  - 03. Jan. 2024
 
 ### Configuration Parameters
 
@@ -148,8 +155,12 @@ Press the encoder button to access the main menu:
 - 1 = HiRes mode (1/32 step) for high precision
 
 #### Depth of Field (DoF)
-- **Rail Mode**: 20-1500μm/step (normal), 10-652μm/step (HiRes)
-- **Microscope Mode**: 10-1800nm/step (normal), 5-1000nm/step (HiRes)
+- **Small Increment Mode** (Precision):
+  - Rail Mode: 20-1500μm/step (normal), 10-652μm/step (HiRes)
+  - Microscope Mode: 10-1800nm/step (normal), 5-1000nm/step (HiRes)
+- **Big Increment Mode** (Speed):
+  - Rail Mode: 20-2000μm/step (normal), 10-1500μm/step (HiRes)
+  - Microscope Mode: 10-3000nm/step (normal), 5-2000nm/step (HiRes)
 
 #### Timing Settings
 - **Shutter timing**: 1-20 seconds delay between captures
@@ -174,10 +185,10 @@ Press the encoder button to access the main menu:
 
 ```
 FOCUSpilot/
-├── fccFS-PRO_1.1.6/
-│   └── fccFS-PRO_1.1.6.ino    # Main Arduino sketch (current version)
-├── fccFS-PRO_1.1.6.cpp        # Implementation file
-├── fccFS-PRO_1.1.6.h          # Header file
+├── fccFS-PRO_1.1.7b/
+│   └── fccFS-PRO_1.1.7b.ino    # Main Arduino sketch (current version)
+├── fccFS-PRO_1.1.7b.cpp        # Implementation file
+├── fccFS-PRO_1.1.7b.h          # Header file
 ├── libraries/                  # Required Arduino libraries
 │   ├── EEPROM/
 │   ├── EEPROMTyped-1.0.0/

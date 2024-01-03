@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.1.7b] - 2024-01-03
+
+### Added
+- **Dual DOF Setting System** - separate "small" and "big" increment options for different workflow needs
+  - **Small increment** (`SetDOF`): Original precision ranges for detailed work
+  - **Big increment** (`SetDOF2`): Extended ranges for faster stacking operations
+- **Enhanced menu structure** with `menuDOF2` enum and dual DOF options
+- **Extended DOF ranges** for big increment mode:
+  - Microscope Normal: 10-3000nm (increased from 10-1800nm)
+  - Microscope HiRes: 5-2000nm (increased from 5-1000nm)
+  - Rail Normal: 20-2000μm (increased from 20-1500μm)
+  - Rail HiRes: 10-1500μm (increased from 10-652μm)
+
+### Changed
+- **Hardware compatibility** - relay trigger pin reverted from 10 to 11
+- **Menu navigation** - added dual DOF options in multiple menu sections:
+  - RUN Forward settings: "um/step small" and "um/step big"
+  - RUN Backward settings: "um/step small" and "um/step big"
+  - PREFERENCES: "um/step small" and "um/step big"
+
+### Enhanced
+- **User interface** - improved DOF setting screens with descriptive labels
+  - Small increment: displays "small increment" on second line
+  - Big increment: displays "big increment" on second line
+- **Workflow flexibility** - users can now choose between precision and speed modes
+- **User experience** - more intuitive menu navigation with clear options
+
+### Technical Improvements
+- **Flexible DOF configuration** - supports both detailed macro work and faster overview stacking
+- **Better workflow options** - quick setup for different types of focus stacking projects
+- **Enhanced user guidance** - clear distinction between precision and speed modes
+
+---
+
 ## [1.1.6] - 2023-11-13
 
 ### Changed

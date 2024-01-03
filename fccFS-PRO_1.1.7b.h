@@ -1,5 +1,5 @@
-#ifndef FCCFS-PRO_1.1.6_H
-#define FCCFS-PRO_1.1.6_H
+#ifndef FCCFS-PRO_1.1.7B_H
+#define FCCFS-PRO_1.1.7B_H
 
 #include <Arduino.h>
 
@@ -30,6 +30,7 @@ void SetDOF();
 void SetModeFS();
 void SetModeM();
 void SetDOF();
+void SetDOF2();
 void SetBoot();
 void SetPresetM();
 void SetPresetR();

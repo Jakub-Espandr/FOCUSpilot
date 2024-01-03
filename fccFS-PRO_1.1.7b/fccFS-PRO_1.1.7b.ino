@@ -22,7 +22,7 @@ LiquidCrystal_I2C_Menu lcd(0x27, 16, 2);  //0x27order / 3f me
 #define msg1 16
 #define msg2 15
 #define msg3 14
-#define releTrig 10     //was 11
+#define releTrig 11
 
 //------------------------------------------------------
 // EEPROM function
@@ -35,7 +35,7 @@ int readIntFromEEPROM(int address) {
 }
 //------------------------------------------------------
 // SHOW BOOTSCREEN
-char* messagePadded = "     v1.1.6     www.FlyCamCzech.cz/FocusStacking                ";  //pointer
+char* messagePadded = "     v1.1.7b    www.FlyCamCzech.cz/FocusStacking                ";  //pointer
 void showLetters(int printStart, int startLetter) {
   lcd.setCursor(printStart, 1);
   for (int letter = startLetter; letter <= startLetter + 15; letter++)  // Print only 16 chars in Line #2 starting 'startLetter'
@@ -100,6 +100,7 @@ enum { menuBack,
        menuSettings,
        menuPreferences,
        menuDOF,
+       menuDOF2,
        menuTime,
        menuTimeMove,
        menuTimeTrigger,
@@ -139,6 +140,7 @@ enum { menuBack,
 //------------------------------------------------------
 // MENU VOIDS
 void SetDOF();
+void SetDOF2();
 void msgs();
 void SetDelay();
 void SetDelayMove();
@@ -257,9 +259,9 @@ void goFront2() {
 
   digitalWrite(dirPin, LOW);
   digitalWrite(stepPin, HIGH);
-  delayMicroseconds(motorSpeed);
+  delayMicroseconds(900);
   digitalWrite(stepPin, LOW);
-  delayMicroseconds(motorSpeed);
+  delayMicroseconds(900);
 }
 
 //------------------------------------------------------
@@ -642,16 +644,17 @@ sMenuItem menu[] = {
   { menuRoot, menuShot, "testSHOT", capture },
 
   { menuRoot, menuRun, "RUN", NULL },
-
-  { menuRun, menuRunBsettings, " RUN Backward", NULL },
-  { menuRunBsettings, menuDOF, " um/step", SetDOF },
-  { menuRunBsettings, menuRunB, " RUN", goRunB },
-  { menuRunBsettings, menuBack, " goBACK", NULL },
-
   { menuRun, menuRunFsettings, " RUN Forward", NULL },
-  { menuRunFsettings, menuDOF, " um/step", SetDOF },
+  { menuRunFsettings, menuDOF, " um/step small", SetDOF },
+  { menuRunFsettings, menuDOF2, " um/step big", SetDOF2 },
   { menuRunFsettings, menuRunF, " RUN", goRunF },
   { menuRunFsettings, menuBack, " goBACK", NULL },
+
+  { menuRun, menuRunBsettings, " RUN Backward", NULL },
+  { menuRunBsettings, menuDOF, " um/step small", SetDOF },
+  { menuRunBsettings, menuDOF2, " um/step big", SetDOF2 },
+  { menuRunBsettings, menuRunB, " RUN", goRunB },
+  { menuRunBsettings, menuBack, " goBACK", NULL },
 
   { menuRun, menuDelete, " Delete TRACE", delTrace },
   { menuRun, menuBack, " EXIT", NULL },
@@ -664,7 +667,8 @@ sMenuItem menu[] = {
 
   { menuRoot, menuPreferences, "PREFERENCES", NULL },
   { menuPreferences, menuStep, " HiRes.", SetStepValue },
-  { menuPreferences, menuDOF, " um/step", SetDOF },
+  { menuPreferences, menuDOF, " um/step small", SetDOF },
+  { menuPreferences, menuDOF2, " um/step big", SetDOF2 },
   { menuPreferences, menuTime, " time shutter", SetDelay },
   { menuPreferences, menuTimeMove, " time vibr.", SetDelayMove },
   { menuPreferences, menuShootMode, " mirrorLock", SetShootMode },
@@ -708,8 +712,8 @@ sMenuItem menu[] = {
   { menuRoot, menuInfo, "VERSION", NULL },
   { menuInfo, menuInfoDisp, "model: fccFS2 PRO ", NULL },
   { menuInfo, menuInfoDisp, "by FlyCamCzech", NULL },
-  { menuInfo, menuInfoDisp, "version 1.1.6", NULL },
-  { menuInfo, menuInfoDisp, "13. Nov. 2023", NULL },
+  { menuInfo, menuInfoDisp, "version 1.1.7b", NULL },
+  { menuInfo, menuInfoDisp, "03. Jan. 2024", NULL },
   { menuInfo, menuBack, " EXIT", NULL },
 
   { menuRoot, menuBack, "EXIT", NULL },
@@ -1080,25 +1084,28 @@ void SetModeM() {
 //------------------------------------------------------
 void SetDOF() {
   lcd.clear();
-
-
   switch (presetVal) {
     case 0:
       switch (stepsI) {
         case 0:
           lcd.setCursor(0, 0);
           lcd.print(F("nm/step - normal"));
+          lcd.setCursor(0, 1);
+          lcd.print(F("small increment"));
           delay(1750);
-          DOF = lcd.inputVal<int>("Input um/step", 10, 1800, DOF, 5);
+          DOF = lcd.inputVal<int>("Input nm/step", 10, 1800, DOF, 5);
           break;
 
         case 1:
           lcd.setCursor(0, 0);
           lcd.print(F("nm/step - HiRes"));
+          lcd.setCursor(0, 1);
+          lcd.print(F("small increment"));
           delay(1750);
           DOF = lcd.inputVal<int>("Input nm/step", 5, 1000, DOF, 1);
           break;
       }
+
       break;
 
     case 1:
@@ -1106,6 +1113,8 @@ void SetDOF() {
         case 0:
           lcd.setCursor(0, 0);
           lcd.print(F("um/step - normal"));
+          lcd.setCursor(0, 1);
+          lcd.print(F("small increment"));
           delay(1750);
           DOF = lcd.inputVal<int>("Input um/step", 20, 1500, DOF, 5);
           break;
@@ -1113,31 +1122,15 @@ void SetDOF() {
         case 1:
           lcd.setCursor(0, 0);
           lcd.print(F("um/step - HiRes"));
+          lcd.setCursor(0, 1);
+          lcd.print(F("small increment"));
           delay(1750);
-          DOF = lcd.inputVal<int>("Input nm/step", 10, 652, DOF, 2);
+          DOF = lcd.inputVal<int>("Input um/step", 10, 652, DOF, 2);
           break;
       }
       break;
   }
 
-
-
-
-  /*
-    switch (stepsI) {
-      case 0:
-        lcd.setCursor(0, 0);
-        lcd.print(F("um/step"));
-        DOF = lcd.inputVal<int>("Input um/step", 20, 1500, DOF, 5);
-        break;
-
-      case 1:
-        lcd.setCursor(0, 0);
-        lcd.print(F("um/step"));
-        DOF = lcd.inputVal<int>("Input um/step", 10, 652, DOF, 2);
-        break;
-    }
-  */
 
   switch (autoSave) {
     case 0:
@@ -1166,9 +1159,87 @@ void SetDOF() {
       }
       break;
   }
-
 }
 
+//------------------------------------------------------
+void SetDOF2() {
+  lcd.clear();
+  switch (presetVal) {
+    case 0:
+      switch (stepsI) {
+        case 0:
+          lcd.setCursor(0, 0);
+          lcd.print(F("nm/step - normal"));
+          lcd.setCursor(0, 1);
+          lcd.print(F("big increment"));
+          delay(1750);
+          DOF = lcd.inputVal<int>("Input nm/step", 10, 3000, DOF, 200);
+          break;
+
+        case 1:
+          lcd.setCursor(0, 0);
+          lcd.print(F("nm/step - HiRes"));
+          lcd.setCursor(0, 1);
+          lcd.print(F("big increment"));
+          delay(1750);
+          DOF = lcd.inputVal<int>("Input nm/step", 5, 2000, DOF, 100);
+          break;
+      }
+
+      break;
+
+    case 1:
+      switch (stepsI) {
+        case 0:
+          lcd.setCursor(0, 0);
+          lcd.print(F("um/step - normal"));
+          lcd.setCursor(0, 1);
+          lcd.print(F("big increment"));
+          delay(1750);
+          DOF = lcd.inputVal<int>("Input um/step", 20, 2000, DOF, 200);
+          break;
+
+        case 1:
+          lcd.setCursor(0, 0);
+          lcd.print(F("um/step - HiRes"));
+          lcd.setCursor(0, 1);
+          lcd.print(F("big increment"));
+          delay(1750);
+          DOF = lcd.inputVal<int>("Input um/step", 10, 1500, DOF, 100);
+          break;
+      }
+      break;
+  }
+
+
+  switch (autoSave) {
+    case 0:
+      switch (presetVal) {
+        case 0:
+          delay(100);
+          break;
+
+        case 1:
+          delay(100);
+          break;
+      }
+      break;
+
+    case 1:
+      switch (presetVal) {
+        case 0:
+          writeIntIntoEEPROM(42, DOF);
+          delay(200);
+          break;
+
+        case 1:
+          writeIntIntoEEPROM(9, DOF);
+          delay(200);
+          break;
+      }
+      break;
+  }
+}
 //------------------------------------------------------
 void SetBoot() {
   lcd.clear();
