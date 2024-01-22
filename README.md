@@ -77,7 +77,7 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 
 1. **Install Libraries**: Install the required Arduino libraries through the Library Manager
 2. **Connect Hardware**: Wire the components according to the pin diagram above
-3. **Upload Code**: Upload the `fccFS-PRO_1.1.7b.ino` file to your Arduino board
+3. **Upload Code**: Upload the `fccFS-PRO_1.1.7.ino` file to your Arduino board
 4. **Power On**: Connect power and initialize the system
 
 ---
@@ -103,11 +103,15 @@ Press the encoder button to access the main menu:
   - RUN Forward: Execute forward focus stacking with settings
     - um/step small: Set precise depth of field for detailed work
     - um/step big: Set extended depth of field for faster stacking
-    - RUN: Execute forward focus stacking
+    - shots: Set number of shots for shot-based stacking
+    - RUN shots: Execute forward stacking based on shot count
+    - RUN dist: Execute forward stacking based on distance
   - RUN Backward: Execute backward focus stacking with settings
     - um/step small: Set precise depth of field for detailed work
     - um/step big: Set extended depth of field for faster stacking
-    - RUN: Execute backward focus stacking
+    - shots: Set number of shots for shot-based stacking
+    - RUN dist: Execute backward stacking based on distance
+    - RUN shots: Execute backward stacking based on shot count
   - Delete TRACE: Clear saved positions
 - **GO position**: Manual movement commands
   - BACK pos.: Move to start position
@@ -145,8 +149,8 @@ Press the encoder button to access the main menu:
 - **VERSION**: System information
   - model: fccFS2 PRO
   - by FlyCamCzech
-  - version 1.1.7b
-  - 03. Jan. 2024
+  - version 1.1.7
+  - 22. Jan. 2024
 
 ### Configuration Parameters
 
@@ -185,10 +189,10 @@ Press the encoder button to access the main menu:
 
 ```
 FOCUSpilot/
-├── fccFS-PRO_1.1.7b/
-│   └── fccFS-PRO_1.1.7b.ino    # Main Arduino sketch (current version)
-├── fccFS-PRO_1.1.7b.cpp        # Implementation file
-├── fccFS-PRO_1.1.7b.h          # Header file
+├── fccFS-PRO_1.1.7/
+│   └── fccFS-PRO_1.1.7.ino    # Main Arduino sketch (current version)
+├── fccFS-PRO_1.1.7.cpp        # Implementation file
+├── fccFS-PRO_1.1.7.h          # Header file
 ├── libraries/                  # Required Arduino libraries
 │   ├── EEPROM/
 │   ├── EEPROMTyped-1.0.0/

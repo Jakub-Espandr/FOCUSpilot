@@ -1,6 +1,3 @@
-#include "fccFS-PRO_1.1.7b.h"
-#include <Arduino.h>
-
 #include <Wire.h>
 #include <LiquidCrystal_I2C_Menu.h>
 
@@ -25,7 +22,7 @@ LiquidCrystal_I2C_Menu lcd(0x27, 16, 2);  //0x27order / 3f me
 #define msg1 16
 #define msg2 15
 #define msg3 14
-#define releTrig 11
+#define releTrig 10     // was 11
 
 //------------------------------------------------------
 // EEPROM function
@@ -38,7 +35,7 @@ int readIntFromEEPROM(int address) {
 }
 //------------------------------------------------------
 // SHOW BOOTSCREEN
-char* messagePadded = "     v1.1.7b    www.FlyCamCzech.cz/FocusStacking                ";  //pointer
+char* messagePadded = "     v1.1.7     www.FlyCamCzech.cz/FocusStacking                ";  //pointer
 void showLetters(int printStart, int startLetter) {
   lcd.setCursor(printStart, 1);
   for (int letter = startLetter; letter <= startLetter + 15; letter++)  // Print only 16 chars in Line #2 starting 'startLetter'
@@ -83,6 +80,7 @@ int mirror;
 int bootVal;
 int presetVal;
 int autoSave;
+int shots;
 unsigned long actualState = 0;
 unsigned long motorState = 0;
 unsigned long focusMotorState = 0;
@@ -132,8 +130,11 @@ enum { menuBack,
        menuRun,
        menuRunF,
        menuRunB,
+       menuRunF_shots,
+       menuRunB_shots,
        menuRunFsettings,
        menuRunBsettings,
+       menuShots,
        menuDelete,
        menuGo,
        menuGoF,
@@ -161,6 +162,8 @@ void goRunFsettings();
 void goRunBsettings();
 void goRunF();
 void goRunB();
+void goRunB_shots();
+void goRunB_shots();
 void delTrace();
 void goF();
 void goB();
@@ -171,6 +174,7 @@ void SetModeM();
 void SetPresetR();
 void SetPresetM();
 void SetAutoSave();
+void SetShots();
 //------------------------------------------------------
 //------------------------------------------------------
 //------------------------------------------------------
@@ -234,9 +238,9 @@ void goBack2() {
 
   digitalWrite(dirPin, HIGH);
   digitalWrite(stepPin, HIGH);
-  delayMicroseconds(900);
+  delayMicroseconds(motorSpeed*2);
   digitalWrite(stepPin, LOW);
-  delayMicroseconds(900);
+  delayMicroseconds(motorSpeed*2);
 }
 
 //------------------------------------------------------
@@ -262,9 +266,9 @@ void goFront2() {
 
   digitalWrite(dirPin, LOW);
   digitalWrite(stepPin, HIGH);
-  delayMicroseconds(900);
+  delayMicroseconds(motorSpeed*2);
   digitalWrite(stepPin, LOW);
-  delayMicroseconds(900);
+  delayMicroseconds(motorSpeed*2);
 }
 
 //------------------------------------------------------
@@ -415,6 +419,131 @@ void goRunF() {
 
 //------------------------------------------------------
 
+
+void goRunB_shots() {
+  focusMotorState = (motorState/shots);
+
+for (int i = 0; i < focusMotorState; i++) {
+    loopCounter++;
+
+    for (int i = 0; i < shots; i++) {
+      char customKey = keypad.getKey();
+
+      if (digitalRead(3) == LOW) {
+        emergency = 1;
+        break;
+        LCDRepaint();
+        delay(30);
+      }
+      goBack();
+      focusCounter++;
+    }
+    lcd.clear();
+    int remainingTime = (((trigger * 2) + mirror + 5000 + delayTiming + delayTimingMove) / 2000);
+    int laps = (focusMotorState - loopCounter);
+    lcd.setCursor(0, 0);
+    lcd.print(String(loopCounter) + String("/") + String(focusMotorState));
+
+    lcd.setCursor(10, 0);
+    lcd.print(String(laps * remainingTime) + String("s"));
+
+    lcd.setCursor(0, 1);
+    lcd.print(String("shots: "));
+
+    lcd.setCursor(10, 1);
+    
+        lcd.print(String(shots));
+       
+
+    delay(delayTimingMove);
+    char customKey = keypad.getKey();
+    capture();
+    delay(delayTiming);
+
+    if (digitalRead(3) == LOW) {
+      emergency = 1;
+      break;
+      LCDRepaint();
+      delay(30);
+      motorStop();
+    }
+}
+  emergency = 0;
+  focusMotorState = 0;
+  focusCounter = 0;
+  motorStop();
+}
+
+//------------------------------------------------
+void goRunF_shots() {
+
+    for (int i = 0; i < motorState; i++) {
+    goFront2();
+  }
+  
+    focusMotorState = (motorState/shots);
+
+for (int i = 0; i < focusMotorState; i++) {
+    loopCounter++;
+
+    for (int i = 0; i < shots; i++) {
+      char customKey = keypad.getKey();
+
+      if (digitalRead(3) == LOW) {
+        emergency = 1;
+        break;
+        LCDRepaint();
+        delay(30);
+      }
+      goFront();
+      focusCounter++;
+    }
+    lcd.clear();
+    int remainingTime = (((trigger * 2) + mirror + 5000 + delayTiming + delayTimingMove) / 2000);
+    int laps = (focusMotorState - loopCounter);
+    lcd.setCursor(0, 0);
+    lcd.print(String(loopCounter) + String("/") + String(focusMotorState));
+
+    lcd.setCursor(10, 0);
+    lcd.print(String(laps * remainingTime) + String("s"));
+
+    lcd.setCursor(0, 1);
+    lcd.print(String("shots: "));
+
+    lcd.setCursor(10, 1);
+    
+        lcd.print(String(shots));
+       
+
+    delay(delayTimingMove);
+    char customKey = keypad.getKey();
+    capture();
+    delay(delayTiming);
+
+    if (digitalRead(3) == LOW) {
+      emergency = 1;
+      break;
+      LCDRepaint();
+      delay(30);
+      motorStop();
+    }
+}
+
+  if ((AutoReturn == 1) and (emergency == 0)) {
+    for (int i = 0; i < motorState; i++) {
+      goFront();
+    }
+    motorStop();
+  }
+
+  emergency = 0;
+  focusMotorState = 0;
+  focusCounter = 0;
+  motorStop();
+}
+
+
+//----------------------------------------
 // RUN Back
 void goRunB() {
   lcd.clear();
@@ -650,13 +779,17 @@ sMenuItem menu[] = {
   { menuRun, menuRunFsettings, " RUN Forward", NULL },
   { menuRunFsettings, menuDOF, " um/step small", SetDOF },
   { menuRunFsettings, menuDOF2, " um/step big", SetDOF2 },
-  { menuRunFsettings, menuRunF, " RUN", goRunF },
+  { menuRunFsettings, menuShots, " shots", SetShots },
+  { menuRunFsettings, menuRunF_shots, " RUN shots", goRunF_shots },
+  { menuRunFsettings, menuRunF, " RUN dist", goRunF },
   { menuRunFsettings, menuBack, " goBACK", NULL },
 
   { menuRun, menuRunBsettings, " RUN Backward", NULL },
   { menuRunBsettings, menuDOF, " um/step small", SetDOF },
   { menuRunBsettings, menuDOF2, " um/step big", SetDOF2 },
-  { menuRunBsettings, menuRunB, " RUN", goRunB },
+  { menuRunBsettings, menuShots, " shots", SetShots },
+  { menuRunBsettings, menuRunB, " RUN dist", goRunB },
+  { menuRunBsettings, menuRunB_shots, " RUN shots", goRunB_shots },
   { menuRunBsettings, menuBack, " goBACK", NULL },
 
   { menuRun, menuDelete, " Delete TRACE", delTrace },
@@ -715,8 +848,8 @@ sMenuItem menu[] = {
   { menuRoot, menuInfo, "VERSION", NULL },
   { menuInfo, menuInfoDisp, "model: fccFS2 PRO ", NULL },
   { menuInfo, menuInfoDisp, "by FlyCamCzech", NULL },
-  { menuInfo, menuInfoDisp, "version 1.1.7b", NULL },
-  { menuInfo, menuInfoDisp, "03. Jan. 2024", NULL },
+  { menuInfo, menuInfoDisp, "version 1.1.7", NULL },
+  { menuInfo, menuInfoDisp, "22. Jan. 2024", NULL },
   { menuInfo, menuBack, " EXIT", NULL },
 
   { menuRoot, menuBack, "EXIT", NULL },
@@ -914,7 +1047,7 @@ void SetSpeed() {
   lcd.print(F("per single step"));
   delay(1750);
 
-  motorSpeed = lcd.inputVal<int>("Input in ms", 25, 1000, motorSpeed, 25);
+  motorSpeed = lcd.inputVal<int>("Input in ms", 50, 1500, motorSpeed, 50);
 
   switch (autoSave) {
     case 0:
@@ -987,6 +1120,19 @@ void SetStepValue() {
       }
       break;
   }
+}
+
+
+//------------------------------------------------------
+void SetShots() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(F("Set number"));
+  lcd.setCursor(1, 1);
+  lcd.print(F("of shots"));
+  delay(1750);
+
+  shots = lcd.inputVal<int>("no. of shots", 10, 1000, shots, 10);
 }
 
 //------------------------------------------------------

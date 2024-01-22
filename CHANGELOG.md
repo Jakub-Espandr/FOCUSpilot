@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.1.7] - 2024-01-22
+
+### Added
+- **Forward Shots Mode** - new shot-based stacking for forward direction
+  - **New function** `goRunF_shots()` for forward shot-based stacking
+  - **Menu integration** - "RUN shots" option added to RUN Forward settings
+  - **Shot-based workflow** - allows setting number of shots instead of distance for forward stacking
+  - **Auto-return support** - includes automatic return to start position when enabled
+  - **Progress tracking** - real-time display of shot count and remaining time
+
+### Changed
+- **Hardware compatibility** - relay trigger pin reverted from 11 to 10
+- **Version numbering** - updated from 1.1.7b to 1.1.7
+- **Release date** - updated to 22. Jan. 2024
+
+### Enhanced Features
+- **Dual stacking modes** - users can now choose between distance-based and shot-based stacking for forward direction
+- **Consistent interface** - shot-based mode follows same pattern as existing backward shot mode
+- **Menu structure** - enhanced RUN Forward menu with both distance and shot options
+
+### Technical Improvements
+- **Workflow flexibility** - supports both traditional distance-based and new shot-based workflows
+- **Error handling** - includes emergency stop functionality in new shot mode
+- **Progress display** - enhanced user feedback during shot-based stacking operations
+
+---
+
 ## [1.1.7b] - 2024-01-03
 
 ### Added
