@@ -1,6 +1,3 @@
-#include "fccFS-PRO_1.1.7.h"
-#include <Arduino.h>
-
 #include <Wire.h>
 #include <LiquidCrystal_I2C_Menu.h>
 
@@ -13,6 +10,7 @@ LiquidCrystal_I2C_Menu lcd(0x27, 16, 2);  //0x27order / 3f me
 //------------------------------------------------------
 // user defines
 #define wait 500
+int noShots;
 //------------------------------------------------------
 //------------------------------------------------------
 
@@ -25,7 +23,7 @@ LiquidCrystal_I2C_Menu lcd(0x27, 16, 2);  //0x27order / 3f me
 #define msg1 16
 #define msg2 15
 #define msg3 14
-#define releTrig 10     // was 11
+#define releTrig 11
 
 //------------------------------------------------------
 // EEPROM function
@@ -38,7 +36,7 @@ int readIntFromEEPROM(int address) {
 }
 //------------------------------------------------------
 // SHOW BOOTSCREEN
-char* messagePadded = "     v1.1.7     www.FlyCamCzech.cz/FocusStacking                ";  //pointer
+char* messagePadded = "     v.1.1.8b   www.FlyCamCzech.cz/FocusStacking                ";  //pointer
 void showLetters(int printStart, int startLetter) {
   lcd.setCursor(printStart, 1);
   for (int letter = startLetter; letter <= startLetter + 15; letter++)  // Print only 16 chars in Line #2 starting 'startLetter'
@@ -80,10 +78,11 @@ int delayTimingMove;
 int delayTimingTrigger;
 int trigger;
 int mirror;
-int bootVal;
+//int bootVal;
 int presetVal;
 int autoSave;
 int shots;
+int pics;
 unsigned long actualState = 0;
 unsigned long motorState = 0;
 unsigned long focusMotorState = 0;
@@ -112,7 +111,7 @@ enum { menuBack,
        menuMirror,
        menuAutoReturn,
        menuSpeed,
-       menuAdded,
+       // menuAdded,
        menuSave_Restore,
        menuSave,
        menuSaveFocusStack,
@@ -124,7 +123,7 @@ enum { menuBack,
        menuMode,
        menuModeM,
        menuModeFS,
-       menuBoot,
+       //menuBoot,
        menuPreset,
        menuPresetM,
        menuPresetR,
@@ -156,7 +155,7 @@ void SetShootMode();
 void SetStepValue();
 void SetAutoReturn();
 void SetMirror();
-void SetAdded();
+//void SetAdded();
 void SetDefaultsFS();
 void SetDefaultsM();
 void SetSpeed();
@@ -171,7 +170,7 @@ void delTrace();
 void goF();
 void goB();
 void capture();
-void SetBoot();
+//void SetBoot();
 void SetModeFS();
 void SetModeM();
 void SetPresetR();
@@ -241,9 +240,9 @@ void goBack2() {
 
   digitalWrite(dirPin, HIGH);
   digitalWrite(stepPin, HIGH);
-  delayMicroseconds(motorSpeed*2);
+  delayMicroseconds(motorSpeed * 2);
   digitalWrite(stepPin, LOW);
-  delayMicroseconds(motorSpeed*2);
+  delayMicroseconds(motorSpeed * 2);
 }
 
 //------------------------------------------------------
@@ -269,9 +268,9 @@ void goFront2() {
 
   digitalWrite(dirPin, LOW);
   digitalWrite(stepPin, HIGH);
-  delayMicroseconds(motorSpeed*2);
+  delayMicroseconds(motorSpeed * 2);
   digitalWrite(stepPin, LOW);
-  delayMicroseconds(motorSpeed*2);
+  delayMicroseconds(motorSpeed * 2);
 }
 
 //------------------------------------------------------
@@ -423,13 +422,94 @@ void goRunF() {
 //------------------------------------------------------
 
 
-void goRunB_shots() {
-  focusMotorState = (motorState/shots);
+void goRunF_shots() {
+  lcd.clear();
+  loopCounter = 0;
+  focusCounter = 0;
+  emergency = 0;
 
-for (int i = 0; i < focusMotorState; i++) {
+
+
+  focusMotorState = (motorState / noShots);
+
+  for (int i = 0; i < motorState; i++) {
+    goBack2();
+  }
+
+  delayTiming = timing * 1000;
+  delayTimingMove = timingMove * 1000;
+  delay(2400);  // wait before changing dir
+
+  for (int i = 0; i < noShots; i++) {
     loopCounter++;
+    for (int i = 0; i < focusMotorState; i++) {
+      char customKey = keypad.getKey();
 
-    for (int i = 0; i < shots; i++) {
+      if (digitalRead(3) == LOW) {
+        emergency = 1;
+        break;
+        LCDRepaint();
+        delay(30);
+      }
+      goFront();
+      focusCounter++;
+    }
+
+    lcd.clear();
+    int remainingTime = (((trigger * 2) + mirror + 5000 + delayTiming + delayTimingMove) / 2000);
+    int laps = (focusMotorState - loopCounter);
+
+    lcd.setCursor(0, 0);
+    lcd.print(String(loopCounter) + String("/") + String(focusMotorState));
+
+    lcd.setCursor(10, 0);
+    lcd.print(String(laps * remainingTime) + String("s"));
+
+    lcd.setCursor(0, 1);
+    lcd.print(String("no. shots"));
+
+    lcd.setCursor(10, 1);
+
+    lcd.print(String(noShots) );
+    break;
+
+
+    delay(delayTimingMove);
+    char customKey = keypad.getKey();
+    capture();
+    delay(delayTiming);
+    if (digitalRead(3) == LOW) {
+      emergency = 1;
+      break;
+      LCDRepaint();
+      delay(30);
+      motorStop();
+    }
+  }
+
+  emergency = 0;
+  focusCounter = 0;
+  focusMotorState = 0;
+  motorStop();
+}
+
+//------------------------------------------------
+void goRunB_shots() {
+  lcd.clear();
+  loopCounter = 0;
+  focusCounter = 0;
+  emergency = 0;
+
+
+  focusMotorState = (motorState / noShots);
+
+  delayTiming = timing * 1000;
+  delayTimingMove = timingMove * 1000;
+  delay(2400);  // wait before changing dir
+
+  for (int i = 0; i < noShots; i++) {
+    loopCounter++;
+    for (int i = 0; i < focusMotorState; i++) {
       char customKey = keypad.getKey();
 
       if (digitalRead(3) == LOW) {
@@ -441,9 +521,11 @@ for (int i = 0; i < focusMotorState; i++) {
       goBack();
       focusCounter++;
     }
+
     lcd.clear();
     int remainingTime = (((trigger * 2) + mirror + 5000 + delayTiming + delayTimingMove) / 2000);
     int laps = (focusMotorState - loopCounter);
+
     lcd.setCursor(0, 0);
     lcd.print(String(loopCounter) + String("/") + String(focusMotorState));
 
@@ -451,18 +533,18 @@ for (int i = 0; i < focusMotorState; i++) {
     lcd.print(String(laps * remainingTime) + String("s"));
 
     lcd.setCursor(0, 1);
-    lcd.print(String("shots: "));
+    lcd.print(String("no. shots"));
 
     lcd.setCursor(10, 1);
-    
-        lcd.print(String(shots));
-       
+
+    lcd.print(String(noShots) );
+    break;
+
 
     delay(delayTimingMove);
     char customKey = keypad.getKey();
     capture();
     delay(delayTiming);
-
     if (digitalRead(3) == LOW) {
       emergency = 1;
       break;
@@ -470,81 +552,13 @@ for (int i = 0; i < focusMotorState; i++) {
       delay(30);
       motorStop();
     }
-}
-  emergency = 0;
-  focusMotorState = 0;
-  focusCounter = 0;
-  motorStop();
-}
-
-//------------------------------------------------
-void goRunF_shots() {
-
-    for (int i = 0; i < motorState; i++) {
-    goFront2();
-  }
-  
-    focusMotorState = (motorState/shots);
-
-for (int i = 0; i < focusMotorState; i++) {
-    loopCounter++;
-
-    for (int i = 0; i < shots; i++) {
-      char customKey = keypad.getKey();
-
-      if (digitalRead(3) == LOW) {
-        emergency = 1;
-        break;
-        LCDRepaint();
-        delay(30);
-      }
-      goFront();
-      focusCounter++;
-    }
-    lcd.clear();
-    int remainingTime = (((trigger * 2) + mirror + 5000 + delayTiming + delayTimingMove) / 2000);
-    int laps = (focusMotorState - loopCounter);
-    lcd.setCursor(0, 0);
-    lcd.print(String(loopCounter) + String("/") + String(focusMotorState));
-
-    lcd.setCursor(10, 0);
-    lcd.print(String(laps * remainingTime) + String("s"));
-
-    lcd.setCursor(0, 1);
-    lcd.print(String("shots: "));
-
-    lcd.setCursor(10, 1);
-    
-        lcd.print(String(shots));
-       
-
-    delay(delayTimingMove);
-    char customKey = keypad.getKey();
-    capture();
-    delay(delayTiming);
-
-    if (digitalRead(3) == LOW) {
-      emergency = 1;
-      break;
-      LCDRepaint();
-      delay(30);
-      motorStop();
-    }
-}
-
-  if ((AutoReturn == 1) and (emergency == 0)) {
-    for (int i = 0; i < motorState; i++) {
-      goFront();
-    }
-    motorStop();
   }
 
   emergency = 0;
-  focusMotorState = 0;
   focusCounter = 0;
+  focusMotorState = 0;
   motorStop();
 }
-
 
 //----------------------------------------
 // RUN Back
@@ -819,8 +833,8 @@ sMenuItem menu[] = {
   { menuSettings, menuAutoReturn, " AutoReturn", SetAutoReturn },
   { menuSettings, menuTimeTrigger, " time (trigg)", SetDelayTrigger },
   { menuSettings, menuSpeed, " motor speed", SetSpeed },
-  { menuSettings, menuAdded, " added length", SetAdded },
-  { menuSettings, menuBoot, " BOOT screen", SetBoot },
+  // { menuSettings, menuAdded, " added length", SetAdded },
+  //{ menuSettings, menuBoot, " BOOT screen", SetBoot },
   { menuSettings, menuPreset, " PRESET a.LOAD", NULL },
   { menuPreset, menuPresetM, " Microscope", SetPresetM },
   { menuPreset, menuPresetR, " Rail", SetPresetR },
@@ -851,8 +865,8 @@ sMenuItem menu[] = {
   { menuRoot, menuInfo, "VERSION", NULL },
   { menuInfo, menuInfoDisp, "model: fccFS2 PRO ", NULL },
   { menuInfo, menuInfoDisp, "by FlyCamCzech", NULL },
-  { menuInfo, menuInfoDisp, "version 1.1.7", NULL },
-  { menuInfo, menuInfoDisp, "22. Jan. 2024", NULL },
+  { menuInfo, menuInfoDisp, "v1.1.8b", NULL },
+  { menuInfo, menuInfoDisp, "06. Mar. 2024", NULL },
   { menuInfo, menuBack, " EXIT", NULL },
 
   { menuRoot, menuBack, "EXIT", NULL },
@@ -1050,7 +1064,7 @@ void SetSpeed() {
   lcd.print(F("per single step"));
   delay(1750);
 
-  motorSpeed = lcd.inputVal<int>("Input in ms", 50, 1500, motorSpeed, 50);
+  motorSpeed = lcd.inputVal<int>("Input in ms", 5, 1000, motorSpeed, 5);
 
   switch (autoSave) {
     case 0:
@@ -1135,7 +1149,8 @@ void SetShots() {
   lcd.print(F("of shots"));
   delay(1750);
 
-  shots = lcd.inputVal<int>("no. of shots", 10, 1000, shots, 10);
+  noShots = lcd.inputVal<int>("no. of pics", 0, 200, noShots, 10);
+  delay (500);
 }
 
 //------------------------------------------------------
@@ -1162,7 +1177,7 @@ void SetModeFS() {
   AutoReturn = readIntFromEEPROM(24);
   motorSpeed = readIntFromEEPROM(27);
   added = readIntFromEEPROM(30);
-  bootVal = readIntFromEEPROM(33);
+  //bootVal = readIntFromEEPROM(33);
   autoSave = readIntFromEEPROM(66);
   delay(100);
   writeIntIntoEEPROM(3, stepsI);
@@ -1175,7 +1190,7 @@ void SetModeFS() {
   writeIntIntoEEPROM(24, AutoReturn);
   writeIntIntoEEPROM(27, motorSpeed);
   writeIntIntoEEPROM(30, added);
-  writeIntIntoEEPROM(33, bootVal);
+  // writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(66, autoSave);
   delay(100);
   presetVal = 1;
@@ -1204,7 +1219,7 @@ void SetModeM() {
   AutoReturn = readIntFromEEPROM(57);
   motorSpeed = readIntFromEEPROM(60);
   added = readIntFromEEPROM(63);
-  bootVal = readIntFromEEPROM(33);
+  // bootVal = readIntFromEEPROM(33);
   autoSave = readIntFromEEPROM(66);
   delay(100);
   writeIntIntoEEPROM(36, stepsI);
@@ -1217,7 +1232,7 @@ void SetModeM() {
   writeIntIntoEEPROM(57, AutoReturn);
   writeIntIntoEEPROM(60, motorSpeed);
   writeIntIntoEEPROM(63, added);
-  writeIntIntoEEPROM(33, bootVal);
+  //writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(66, autoSave);
   delay(100);
   presetVal = 0;
@@ -1393,7 +1408,9 @@ void SetDOF2() {
   }
 }
 //------------------------------------------------------
-void SetBoot() {
+
+/*
+  void SetBoot() {
   lcd.clear();
   lcd.setCursor(1, 0);
   lcd.print(F("enable/disable"));
@@ -1403,8 +1420,8 @@ void SetBoot() {
   bootVal = lcd.inputVal<int>("0 = OFF / 1 = ON", 0, 1, bootVal);
   writeIntIntoEEPROM(33, bootVal);
   delay(500);
-}
-
+  }
+*/
 //------------------------------------------------------
 void SetPresetM() {
   presetVal = 0;
@@ -1419,7 +1436,7 @@ void SetPresetM() {
   AutoReturn = readIntFromEEPROM(57);
   motorSpeed = readIntFromEEPROM(60);
   added = readIntFromEEPROM(63);
-  bootVal = readIntFromEEPROM(33);
+  //bootVal = readIntFromEEPROM(33);
   autoSave = readIntFromEEPROM(66);
   delay(100);
   writeIntIntoEEPROM(36, stepsI);
@@ -1432,7 +1449,7 @@ void SetPresetM() {
   writeIntIntoEEPROM(57, AutoReturn);
   writeIntIntoEEPROM(60, motorSpeed);
   writeIntIntoEEPROM(63, added);
-  writeIntIntoEEPROM(33, bootVal);
+  //writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(70, presetVal);
   writeIntIntoEEPROM(66, autoSave);
   delay(100);
@@ -1465,7 +1482,7 @@ void SetPresetR() {
   AutoReturn = readIntFromEEPROM(24);
   motorSpeed = readIntFromEEPROM(27);
   added = readIntFromEEPROM(30);
-  bootVal = readIntFromEEPROM(33);
+  //bootVal = readIntFromEEPROM(33);
   autoSave = readIntFromEEPROM(66);
   delay(100);
   writeIntIntoEEPROM(3, stepsI);
@@ -1478,7 +1495,7 @@ void SetPresetR() {
   writeIntIntoEEPROM(24, AutoReturn);
   writeIntIntoEEPROM(27, motorSpeed);
   writeIntIntoEEPROM(30, added);
-  writeIntIntoEEPROM(33, bootVal);
+  //writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(70, presetVal);
   writeIntIntoEEPROM(66, autoSave);
   delay(100);
@@ -1535,7 +1552,8 @@ void SetShootMode() {
 }
 
 //------------------------------------------------------
-void SetAdded() {
+/*
+  void SetAdded() {
   lcd.clear();
   lcd.setCursor(3, 0);
   lcd.print(F("set length"));
@@ -1571,7 +1589,8 @@ void SetAdded() {
       }
       break;
   }
-}
+  }
+*/
 
 //------------------------------------------------------
 void SetAutoReturn() {
@@ -1783,7 +1802,7 @@ void SetSave() {
     writeIntIntoEEPROM(24, AutoReturn);
     writeIntIntoEEPROM(27, motorSpeed);
     writeIntIntoEEPROM(30, added);
-    writeIntIntoEEPROM(33, bootVal);
+    // writeIntIntoEEPROM(33, bootVal);
     writeIntIntoEEPROM(70, presetVal);
     writeIntIntoEEPROM(66, autoSave);
     delay(200);
@@ -1801,7 +1820,7 @@ void SetSave() {
     writeIntIntoEEPROM(57, AutoReturn);
     writeIntIntoEEPROM(60, motorSpeed);
     writeIntIntoEEPROM(63, added);
-    writeIntIntoEEPROM(33, bootVal);
+    //writeIntIntoEEPROM(33, bootVal);
     writeIntIntoEEPROM(70, presetVal);
     writeIntIntoEEPROM(66, autoSave);
     delay(200);
@@ -1876,7 +1895,7 @@ void SetDefaultsFS() {
   AutoReturn = 1;
   motorSpeed = 500;
   added = 30;
-  bootVal = 1;
+  //bootVal = 1;
   presetVal = 1;
   autoSave = 0;
 
@@ -1891,7 +1910,7 @@ void SetDefaultsFS() {
   writeIntIntoEEPROM(24, AutoReturn);
   writeIntIntoEEPROM(27, motorSpeed);
   writeIntIntoEEPROM(30, added);
-  writeIntIntoEEPROM(33, bootVal);
+  // writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(70, presetVal);
   writeIntIntoEEPROM(66, autoSave);
   delay(100);
@@ -1914,7 +1933,7 @@ void SetDefaultsM() {
   AutoReturn = 1;
   motorSpeed = 500;
   added = 50;
-  bootVal = 1;
+  //bootVal = 1;
   presetVal = 0;
   autoSave = 0;
 
@@ -1929,7 +1948,7 @@ void SetDefaultsM() {
   writeIntIntoEEPROM(57, AutoReturn);
   writeIntIntoEEPROM(60, motorSpeed);
   writeIntIntoEEPROM(63, added);
-  writeIntIntoEEPROM(33, bootVal);
+  // writeIntIntoEEPROM(33, bootVal);
   writeIntIntoEEPROM(70, presetVal);
   writeIntIntoEEPROM(66, autoSave);
   delay(100);
@@ -1959,7 +1978,7 @@ void setup() {
     AutoReturn = readIntFromEEPROM(24);
     motorSpeed = readIntFromEEPROM(27);
     added = readIntFromEEPROM(30);
-    bootVal = readIntFromEEPROM(33);
+    //bootVal = readIntFromEEPROM(33);
     autoSave = readIntFromEEPROM(66);
     delay(200);
     presetVal = 1;
@@ -1977,7 +1996,7 @@ void setup() {
     AutoReturn = readIntFromEEPROM(57);
     motorSpeed = readIntFromEEPROM(60);
     added = readIntFromEEPROM(63);
-    bootVal = readIntFromEEPROM(33);
+    // bootVal = readIntFromEEPROM(33);
     autoSave = readIntFromEEPROM(66);
     delay(200);
     presetVal = 0;
@@ -1995,17 +2014,19 @@ void setup() {
 
   //------------------------------------------------
   //BOOT SCREEN
-  if (bootVal == 1) {
+
+  /*
+    if (bootVal == 1) {
     lcd.setCursor(3, 0);
     lcd.print(F("fccFS2 PRO"));
     for (int letter = 0; letter <= strlen(messagePadded) - 16; letter++) {
       showLetters(0, letter);
     }
-  }
-  if (bootVal == 0) {
+    }
+    if (bootVal == 0) {
     delay(300);
-  }
-
+    }
+  */
   lcd.clear();
   LCDRepaint();
   focusCounter = 1;  //1 due restriction of division with 0
@@ -2016,6 +2037,7 @@ void setup() {
   delay(100);
 
 }
+
 //------------------------------------------------------
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //------------------------------------------------------

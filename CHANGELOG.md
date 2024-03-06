@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.1.8b] - 2024-03-06
+
+### Changed
+- **Hardware compatibility** - relay trigger pin reverted from 10 to 11
+- **Version numbering** - updated from 1.1.7 to 1.1.8b
+- **Release date** - updated to 06. Mar. 2024
+- **Motor speed range** - extended from 50-1500ms to 5-1000ms for faster operation
+
+### Removed
+- **Boot screen functionality** - completely disabled boot screen system
+  - Removed `bootVal` variable and all related functionality
+  - Disabled boot screen display in setup()
+  - Removed boot screen menu option and settings
+- **Added length setting** - simplified menu structure by removing "added length" option
+  - Removed `menuAdded` from enum and menu system
+  - Commented out `SetAdded()` function
+
+### Enhanced
+- **Shot-based stacking** - improved variable naming and functionality
+  - Renamed `shots` to `noShots` for better clarity
+  - Enhanced `goRunF_shots()` and `goRunB_shots()` functions
+  - Improved progress display showing "no. shots"
+  - Extended shot range to 0-200 with default 10
+- **Code optimization** - streamlined codebase and reduced memory usage
+  - Removed unused variables and functions
+  - Simplified EEPROM operations
+  - Cleaner code structure with commented-out sections removed
+
+### Technical Improvements
+- **Faster startup** - reduced initialization time by removing boot screen
+- **Simplified interface** - streamlined menu navigation and settings
+- **Better performance** - optimized motor control with extended speed range
+- **Memory optimization** - reduced RAM usage by removing unused features
+
+---
+
 ## [1.1.7] - 2024-01-22
 
 ### Added
@@ -53,6 +89,11 @@
   - Big increment: displays "big increment" on second line
 - **Workflow flexibility** - users can now choose between precision and speed modes
 - **User experience** - more intuitive menu navigation with clear options
+
+### Technical Improvements
+- **Flexible DOF configuration** - supports both detailed macro work and faster overview stacking
+- **Better workflow options** - quick setup for different types of focus stacking projects
+- **Enhanced user guidance** - clear distinction between precision and speed modes
 
 ### Technical Improvements
 - **Flexible DOF configuration** - supports both detailed macro work and faster overview stacking

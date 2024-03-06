@@ -1,5 +1,5 @@
-#ifndef FCCFS-PRO_1.1.7_H
-#define FCCFS-PRO_1.1.7_H
+#ifndef FCCFS-PRO_1.1.8B_H
+#define FCCFS-PRO_1.1.8B_H
 
 #include <Arduino.h>
 
@@ -18,8 +18,8 @@ void motorStop();
 void goB();
 void goF();
 void goRunF();
-void goRunB_shots();
 void goRunF_shots();
+void goRunB_shots();
 void goRunB();
 void goRunB();
 int getItemIndexByKey(uint8_t key);
