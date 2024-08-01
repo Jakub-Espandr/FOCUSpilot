@@ -1,5 +1,86 @@
 # Changelog
 
+## [1.2.0] - 2024-08-01
+
+### **MAJOR ARCHITECTURAL OVERHAUL**
+- **Complete code restructuring** - Implemented C++ structures for better organization
+  - `struct Settings`: Groups all configuration variables (15 variables)
+  - `struct Status`: Groups all runtime state variables (6 variables)
+  - `uint8_t stepSettings`: Bit-packed boolean variables for microstep settings
+- **Memory optimization** - PROGMEM usage, structured data, reduced variable count
+- **Hardware compatibility** - Relay trigger pin changed from 11 to 10
+- **Keypad layout** - Changed from `{ '4', '3', '2', '1' }` to `{ '1', '2', '3', '4' }` (standard order)
+
+### **REVOLUTIONARY OBJECTIVE PRESET SYSTEM**
+- **3 Carousels with 5 objectives each** (15 total presets):
+  - **Carousel 1 (small)**: 2.5x, 3.2x, 6.3x, 10x, 16x
+  - **Carousel 2 (apo)**: 6.3x, 16x, 40x, 63x, 100x  
+  - **Carousel 3 (GF)**: 10x, 20x, 40x, 63x, 100x
+- **Individual EEPROM storage** - Each objective has dedicated EEPROM address
+- **Quick preset selection** - Instant loading of pre-configured DOF values
+- **Objective management menu** - Separate "SET Objectives" section for configuration
+
+### **ADVANCED PHOTO-BASED STACKING**
+- **`goRunByPhotoCount()` function** - Revolutionary stacking based on photo count
+- **Dynamic step calculation** - `localDOF = motorState / numPhotos`
+- **Photo count validation** - Prevents execution without setting photo count
+- **Enhanced progress display** - Shows photo count and remaining time
+- **New menu options** - "Photos" and "RUN by Photos" menu items
+
+### **ENHANCED TESTING CAPABILITIES**
+- **New Test menu** - Dedicated testing section
+- **`testStep()` function** - Tests forward and backward movement
+- **Step validation** - Verifies motor movement and microstep settings
+- **testSHOT** - Camera trigger testing functionality
+
+### **EEPROM MANAGEMENT OVERHAUL**
+- **Organized address mapping** - Clear address definitions for all variables
+- **Dedicated objective storage** - 30 EEPROM addresses for objective presets
+- **Photo count storage** - New EEPROM address for photo-based stacking
+- **Structured loading/saving** - Systematic EEPROM operations
+
+### **MENU SYSTEM REDESIGN**
+- **Hierarchical structure** - 3-level deep menu system
+- **Objective management** - Separate "SET Objectives" and "Presets" sections
+- **Photo-based options** - New menu items for photo count and execution
+- **Improved navigation** - Better back navigation and menu organization
+
+### **PERFORMANCE ENHANCEMENTS**
+- **Optimized motor control** - Improved step timing and movement
+- **Faster boot process** - Streamlined initialization
+- **Better LCD updates** - More efficient display refresh
+- **Reduced memory fragmentation** - Structured data prevents memory issues
+
+### **PRODUCT SPECIALIZATION**
+- **CRITICAL CHANGE: Rail mode completely removed**
+  - No more Rail/Microscope switching functionality
+  - Removed `SetModeFS()`, `SetPresetR()`, `SetDefaultsFS()` functions
+  - Eliminated all rail-specific EEPROM addresses and menu items
+  - `presetVal` hardcoded to 0 (microscope only)
+  - **Transformed from universal focus stacking controller to specialized microscope automation platform**
+
+### **CODE QUALITY IMPROVEMENTS**
+- **Function prototypes** - All functions properly declared
+- **Consistent naming** - Standardized function and variable names
+- **Error handling** - Validation for photo count and objective selection
+- **Documentation** - Comprehensive comments and code organization
+
+### **TECHNICAL SPECIFICATIONS**
+- **Version**: 1.2.0 (August 2024)
+- **Code size**: Significantly reduced through optimization
+- **Memory usage**: More efficient through structured programming
+- **EEPROM usage**: 60+ addresses for comprehensive storage
+- **Menu items**: 80+ menu options with hierarchical structure
+
+### **USER EXPERIENCE IMPROVEMENTS**
+- **Quick objective selection** - One-click preset loading
+- **Photo-based workflow** - Intuitive photo count setting
+- **Enhanced feedback** - Better progress and status display
+- **Simplified operation** - Reduced menu complexity for common tasks
+- **Specialized interface** - Optimized specifically for microscope workflows
+
+---
+
 ## [1.1.8b] - 2024-03-06
 
 ### Changed
