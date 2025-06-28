@@ -1,0 +1,35 @@
+tkinter
+# Python requirements for ino2cpp.py Arduino to C++ converter
+# 
+# This file lists the Python dependencies required to run the
+# Arduino INO to CPP/H conversion script.
+
+# Standard library modules (included with Python, no installation needed):
+# - os
+# - re
+# - shutil
+
+# System packages that may need to be installed:
+# - tkinter (Python GUI library - may need separate installation on some systems)
+
+# Installation commands by system:
+# Ubuntu/Debian: sudo apt-get install python3-tk
+# Fedora/RHEL: sudo dnf install python3-tkinter
+# Arch Linux: sudo pacman -S tk
+# macOS: Usually included with Python installation
+# Windows: Usually included with Python installation
+
+# The script requires Python 3.x and the following modules:
+# - os: for file and directory operations
+# - re: for regular expressions (function extraction)
+# - shutil: for file copying operations
+# - tkinter: for the graphical user interface
+
+# Optional but recommended:
+# - Python 3.6+ for better string handling and f-strings
+
+# To test if tkinter is available, run:
+# python -c "import tkinter; print('tkinter is available')"
+
+# If you get "ModuleNotFoundError: No module named 'tkinter'", 
+# install the tkinter package for your system using the commands above. 

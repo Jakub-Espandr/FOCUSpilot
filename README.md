@@ -82,6 +82,50 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 
 ---
 
+## 🔄 **Code Conversion Tools**
+
+### **Arduino INO to CPP/H Converter**
+The project includes a Python script (`ino2cpp.py`) that converts Arduino `.ino` files to standard C++ format:
+
+#### **Prerequisites:**
+- **Python 3.x** (3.6+ recommended for f-strings)
+- **tkinter** (usually included with Python, see requirements.txt for details)
+- **No external dependencies** - uses only Python standard library modules
+
+#### **Installation:**
+1. **Check requirements**: Review `requirements.txt` for system-specific notes
+2. **Install tkinter** (if needed):
+   - **Ubuntu/Debian**: `sudo apt-get install python3-tk`
+   - **macOS/Windows**: Usually included with Python installation
+3. **Verify installation**: Run `python -c "import tkinter"` to test
+
+#### **Features:**
+- **Automatic Conversion**: Converts `.ino` files to `.cpp` and `.h` files
+- **Function Prototypes**: Automatically extracts and generates function declarations
+- **Library Detection**: Scans and copies required Arduino libraries
+- **GUI Interface**: User-friendly graphical interface for file selection
+- **Deep Library Scan**: Searches multiple Arduino library locations
+
+#### **Usage:**
+1. **Run the script**: `python ino2cpp.py`
+2. **Select .ino file**: Browse to your Arduino sketch
+3. **Choose output directory**: Select where to save converted files
+4. **Convert**: Click "Convert and export" to generate files
+
+#### **Output Files:**
+- **`fccFS-PRO_1.2.0.cpp`**: Main implementation file with all code
+- **`fccFS-PRO_1.2.0.h`**: Header file with function prototypes
+- **Library copies**: Required Arduino libraries copied to output directory
+
+#### **Benefits:**
+- **Better IDE Support**: Standard C++ format works with any C++ IDE
+- **Code Analysis**: Enables advanced code analysis and refactoring tools
+- **Version Control**: Better diff tracking and merge capabilities
+- **Documentation**: Automatic function prototype generation
+- **Integration**: Easier integration with larger C++ projects
+
+---
+
 ## 🎯 **NEW IN VERSION 1.2.0**
 
 ### **Revolutionary Objective Preset System**
@@ -201,8 +245,10 @@ The FlyCamCzech FOCUSpilot is an Arduino-based system designed for automated foc
 FOCUSpilot/
 ├── fccFS-PRO_1.2.0/
 │   └── fccFS-PRO_1.2.0.ino    # Main Arduino sketch (current version)
-├── fccFS-PRO_1.2.0.cpp        # Implementation file
-├── fccFS-PRO_1.2.0.h          # Header file
+├── fccFS-PRO_1.2.0.cpp        # Converted C++ implementation file
+├── fccFS-PRO_1.2.0.h          # Converted C++ header file
+├── ino2cpp.py                 # Arduino to C++ conversion script
+├── requirements.txt           # Python dependencies for conversion script
 ├── libraries/                  # Required Arduino libraries
 │   ├── EEPROM/                # EEPROM management
 │   ├── EEPROMTyped-1.0.0/     # Typed EEPROM operations
@@ -212,6 +258,11 @@ FOCUSpilot/
 ├── CHANGELOG.md               # Version history and changes
 └── README.md                  # This documentation
 ```
+
+### **File Formats Available:**
+- **`.ino`**: Original Arduino sketch format (for Arduino IDE)
+- **`.cpp`**: Standard C++ implementation file (for advanced development)
+- **`.h`**: C++ header file with function prototypes (for code analysis)
 
 ---
 
